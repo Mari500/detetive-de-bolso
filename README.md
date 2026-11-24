@@ -22,7 +22,11 @@ Jogo de detetive para celular, direto no navegador. Sem instalar nada.
 
 ## Ranking
 Mais estrelas primeiro, depois o menor tempo. Cada acusação errada soma 1 minuto.
-O ranking e o progresso ficam salvos no aparelho, com um perfil por jogador.
+
+- **Neste aparelho:** sempre funciona. Cada pessoa no mesmo celular tem o seu perfil.
+- **Online:** junta todo mundo que abrir o link. Usa o Firebase (Firestore):
+  cole a configuração do projeto em `FIREBASE_CONFIG` no `index.html`
+  e publique as regras de `firestore.rules` no console do Firebase.
 
 ## Estrutura
 Tudo em um único arquivo, `index.html` (HTML, CSS e JavaScript puros, sem dependências).

@@ -58,6 +58,27 @@
   .choice.main{background:var(--acc);color:#2b1a05;border-color:var(--acc);font-weight:700}
   .choice.alt{border-color:#6b4fd8;color:#cbbdff}
   .hint{color:var(--mut);font-size:12px;text-align:center;padding:4px}
+  /* abertura */
+  #splash{background:radial-gradient(120% 70% at 50% 0%,#2a2210 0%,var(--bg) 60%)}
+  .sp-b{flex:1;overflow-y:auto;padding:28px 18px 24px;display:flex;flex-direction:column;gap:18px}
+  .logo{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+  .logo svg{width:120px;height:120px}
+  .logo h1{font-size:30px;font-weight:800;letter-spacing:-.02em}
+  .logo h1 span{color:var(--acc)}
+  .logo p{color:var(--mut);font-size:15px;max-width:300px;line-height:1.4}
+  .sp-sec h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--acc);margin-bottom:10px}
+  .goal{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:14px;padding:14px;font-size:15px;line-height:1.5}
+  .steps{display:flex;flex-direction:column;gap:8px}
+  .step{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .step i{font-style:normal;width:40px;height:40px;border-radius:12px;background:var(--panel2);display:grid;place-items:center;font-size:20px;flex-shrink:0}
+  .step b{display:block;font-size:15px;margin-bottom:2px}
+  .step span{color:var(--mut);font-size:13.5px;line-height:1.4}
+  .score{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .score div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut);line-height:1.35}
+  .score div b{display:block;color:var(--txt);font-size:15px;margin-bottom:2px}
+  .tips{color:var(--mut);font-size:13.5px;line-height:1.6;padding-left:18px}
+  .play{width:100%;background:var(--acc);color:#2b1a05;border:none;border-radius:16px;padding:16px;font:800 18px Inter;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 24px rgba(242,184,75,.25)}
+  .play:active{transform:scale(.98)}
   /* home */
   .home-b{flex:1;overflow-y:auto;padding:14px 12px 24px;display:flex;flex-direction:column;gap:10px}
   .hero{padding:4px 4px 8px}
@@ -135,10 +156,58 @@
 <body>
 <div class="app">
 
+  <!-- ABERTURA -->
+  <section class="screen" id="splash">
+    <div class="sp-b">
+      <div class="logo">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="58" fill="#1f232c" stroke="#2a2f3a" stroke-width="2"/>
+          <rect x="30" y="34" width="50" height="34" rx="10" fill="#2f6df6"/><path d="M40 68 l-6 10 l14 -10z" fill="#2f6df6"/>
+          <circle cx="44" cy="51" r="3.5" fill="#fff"/><circle cx="55" cy="51" r="3.5" fill="#fff"/><circle cx="66" cy="51" r="3.5" fill="#fff"/>
+          <circle cx="72" cy="70" r="17" fill="none" stroke="#f2b84b" stroke-width="7"/><circle cx="72" cy="70" r="13" fill="#f2b84b" fill-opacity=".15"/>
+          <path d="M84 82 L98 96" stroke="#f2b84b" stroke-width="9" stroke-linecap="round"/>
+        </svg>
+        <h1>Detetive de <span>Bolso</span></h1>
+        <p>Mistérios curtos que você resolve pelo chat, direto no celular.</p>
+      </div>
+      <button class="play" id="btnPlay">▶ Jogar</button>
+      <div class="sp-sec"><h2>Objetivo</h2>
+        <div class="goal">Alguém te chama no chat pedindo ajuda com um mistério. Junte pistas, pegue os suspeitos na mentira e descubra <b>quem foi, como fez e por quê</b>, com a prova certa, no menor tempo possível.</div>
+      </div>
+      <div class="sp-sec"><h2>Como funciona</h2>
+        <div class="steps">
+          <div class="step"><i>💬</i><div><b>Converse com quem pediu ajuda</b><span>Escolha as perguntas. As respostas trazem prints, horários e pistas.</span></div></div>
+          <div class="step"><i>📷</i><div><b>Examine a cena</b><span>Toque nos objetos da foto. Cada detalhe encontrado pode virar pista ou liberar novas perguntas.</span></div></div>
+          <div class="step"><i>🗣️</i><div><b>Interrogue os suspeitos</b><span>Pergunte e mostre uma pista. Com a pista certa, alguém muda a versão.</span></div></div>
+          <div class="step"><i>🕵️</i><div><b>Faça a acusação</b><span>Responda 4 perguntas: quem, como, por quê e qual é a prova decisiva.</span></div></div>
+        </div>
+      </div>
+      <div class="sp-sec"><h2>Pontuação e ranking</h2>
+        <div class="score">
+          <div><b>⭐⭐⭐</b>4 de 4 na acusação: dedução perfeita</div>
+          <div><b>⭐⭐</b>3 de 4: caso resolvido, com um deslize</div>
+          <div><b>⏱️ Tempo</b>Só corre com o caso aberto</div>
+          <div><b>❌ +1 min</b>A cada acusação errada</div>
+        </div>
+        <p class="hint" style="text-align:left;margin-top:8px">No ranking, vence quem tem mais estrelas. No empate, o menor tempo.</p>
+      </div>
+      <div class="sp-sec"><h2>Dicas</h2>
+        <ul class="tips">
+          <li>Toque na conversa ou use ⏩ pra acelerar as mensagens.</li>
+          <li>O botão 🔎 mostra todas as pistas que você já tem.</li>
+          <li>Repare nas fotos de perfil dos suspeitos. Detalhes importam.</li>
+          <li>Seu progresso fica salvo: pode sair e voltar depois.</li>
+        </ul>
+      </div>
+      <button class="play" id="btnPlay2">▶ Jogar</button>
+    </div>
+  </section>
+
   <!-- INÍCIO -->
-  <section class="screen" id="home">
+  <section class="screen off" id="home">
     <header>
       <div class="who"><b>🕵️ Detetive de Bolso</b><small id="playerLbl">Jogador: —</small></div>
+      <button class="pill" id="btnHelp" aria-label="Como jogar">?</button>
       <button class="pill" id="btnPlayer">✎ Trocar</button>
       <button class="pill" id="btnRank">🏆</button>
     </header>
@@ -212,7 +281,7 @@
       <button class="back" data-back="home" aria-label="Voltar aos casos">‹ Casos</button>
       <div class="who"><b>🏆 Ranking</b><small id="rankSub">Mais estrelas, depois menor tempo</small></div>
     </header>
-    <div class="seg"><button id="segLocal" class="sel">Neste aparelho</button><button id="segOnline">Online</button></div>
+    <div class="seg"><button id="segLocal" class="sel">Neste aparelho</button><button id="segOnline" disabled>🌎 Online</button></div>
     <div class="chips" id="rankChips"></div>
     <div class="rank" id="rankList"></div>
   </section>
@@ -1047,7 +1116,7 @@ window.addEventListener("pagehide",save);
 
 /* ---------- cronômetro (só conta com o caso aberto e a tela visível) ---------- */
 setInterval(()=>{
-  if(!S||S.ended||!C||document.hidden||!$("home").classList.contains("off")||!$("ranking").classList.contains("off"))return;
+  if(!S||S.ended||!C||document.hidden||!$("home").classList.contains("off")||!$("splash").classList.contains("off")||!$("ranking").classList.contains("off"))return;
   S.elapsed+=1000;$("timer").textContent=fmt(S.elapsed+S.penalty);
   if(S.elapsed%10000===0)save();
 },1000);
@@ -1081,7 +1150,7 @@ function openCase(id,fresh){
 }
 
 /* ---------- navegação ---------- */
-function go(id){["home","main","scene","contacts","inter","ranking"].forEach(s=>$(s).classList.toggle("off",s!==id&&!(id!=="home"&&id!=="ranking"&&s==="main")));}
+function go(id){const under=["scene","contacts","inter"].includes(id);["splash","home","main","scene","contacts","inter","ranking"].forEach(s=>$(s).classList.toggle("off",!(s===id||(under&&s==="main"))));}
 document.querySelectorAll("[data-back]").forEach(b=>b.onclick=()=>{
   const to=b.dataset.back;
   if(to==="contacts")renderContacts();
@@ -1250,53 +1319,95 @@ function record(caseId,st,time,score){
   if(isBest){all[player][caseId]=nw;store.set("dp-scores",all);pushOnline(caseId,nw)}
   return isBest;
 }
-let DB=null,USER=null,UID=null,ONLINE=[],NAMES={},onlineReadOnly=false;
+/* Cole aqui a configuração do seu projeto Firebase (Console → Configurações do projeto → Seus apps → Web).
+   Enquanto estiver null, o jogo usa o ranking do Claude (quando aberto pelo Claude) ou só o ranking do aparelho. */
+const FIREBASE_CONFIG=null;
+
+let ONLINE=[],onlineOn=false,onlineReadOnly=false,myOnlineId=()=>null,writeOnline=null;
+const slug=t=>t.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,24)||"x";
+const deviceId=(()=>{let d=store.get("dp-device",null);if(!d){d=Math.random().toString(36).slice(2,10)+Date.now().toString(36);store.set("dp-device",d)}return d})();
+
+function onlineUpdated(){
+  syncLocal();
+  if(!$("ranking").classList.contains("off"))renderRanking();
+}
+/* envia os recordes deste aparelho que ainda não estão online */
+function syncLocal(){
+  if(!onlineOn||!player)return;
+  const mine=ONLINE.find(r=>r.id===myOnlineId()),local=(store.get("dp-scores",{})[player])||{};
+  Object.entries(local).forEach(([cid,v])=>{if(better(v,mine&&mine.cases&&mine.cases[cid]))pushOnline(cid,v)});
+}
+let pushing=Promise.resolve();
+function pushOnline(caseId,v){
+  if(!onlineOn||onlineReadOnly||!writeOnline||!player)return;
+  pushing=pushing.then(()=>writeOnline(caseId,{stars:v.stars,time:v.time,score:v.score})).catch(()=>{});
+}
+
 async function initOnline(){
+  if(FIREBASE_CONFIG)return initFirebase();
+  return initClaudeDB();
+}
+
+/* ----- Firebase / Firestore: ranking de todo mundo que abrir o link ----- */
+async function initFirebase(){
+  try{
+    const V="10.12.2";
+    const {initializeApp}=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
+    const fs=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
+    const db=fs.getFirestore(initializeApp(FIREBASE_CONFIG));
+    myOnlineId=()=>player?deviceId+"_"+slug(player):null;
+    writeOnline=async(caseId,v)=>{
+      const id=myOnlineId(),mine=ONLINE.find(r=>r.id===id);
+      if(!better(v,mine&&mine.cases&&mine.cases[caseId]))return;
+      await fs.setDoc(fs.doc(db,"scores",id),{name:player.slice(0,20),cases:{[caseId]:v},updatedAt:fs.serverTimestamp()},{merge:true});
+    };
+    fs.onSnapshot(fs.query(fs.collection(db,"scores"),fs.limit(1000)),snap=>{
+      ONLINE=snap.docs.map(d=>{const x=d.data()||{};return{id:d.id,name:String(x.name||"Jogador").slice(0,20),cases:x.cases||{}}});
+      onlineUpdated();
+    },()=>{});
+    onlineOn=true;$("segOnline").disabled=false;
+  }catch(e){console.warn("Ranking online indisponível",e)}
+}
+
+/* ----- Claude: quando o jogo é aberto como artifact no claude.ai ----- */
+async function initClaudeDB(){
   try{
     if(!window.claude||!claude.use)return;
     const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
     if(!db||!user)return;
-    const id=await user.id();if(!id)return;
-    DB=db;USER=user;UID=id;
+    const uid=await user.id();if(!uid)return;
     if(typeof user.can==="function"&&(await user.can("data.write"))===false)onlineReadOnly=true;
-    DB.collection("scores").onSnapshot(async snap=>{
-      ONLINE=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
-      try{const ps=await USER.profiles(ONLINE.map(r=>r.id));ONLINE.forEach(r=>NAMES[r.id]=(ps[r.id]&&ps[r.id].name)||"")}catch(e){}
-      // envia recordes locais que ainda não estão online
-      const mine=ONLINE.find(r=>r.id===UID),local=(store.get("dp-scores",{})[player])||{};
-      Object.entries(local).forEach(([cid,v])=>{if(better(v,mine&&mine.cases&&mine.cases[cid]))pushOnline(cid,v)});
-      if(!$("ranking").classList.contains("off"))renderRanking();
-    },()=>{});
-    $("segOnline").disabled=false;
-  }catch(e){}
-}
-let pushing=Promise.resolve();
-function pushOnline(caseId,v){
-  if(!DB||onlineReadOnly)return;
-  pushing=pushing.then(async()=>{
-    try{
-      const ref=DB.doc("scores/"+UID),snap=await ref.get();
+    myOnlineId=()=>uid;
+    writeOnline=async(caseId,v)=>{
+      const ref=db.doc("scores/"+uid),snap=await ref.get();
       const cases=Object.assign({},snap.exists&&snap.data().cases||{});
       if(!better(v,cases[caseId]))return;
-      cases[caseId]={stars:v.stars,time:v.time,score:v.score};
-      await ref.set({cases,nick:player||""});
-    }catch(e){if(e&&e.code==="invalid_argument")onlineReadOnly=true}
-  });
+      cases[caseId]=v;
+      try{await ref.set({cases,nick:player||""})}catch(e){if(e&&e.code==="invalid_argument")onlineReadOnly=true}
+    };
+    db.collection("scores").onSnapshot(async snap=>{
+      const rows=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+      let names={};try{const ps=await user.profiles(rows.map(r=>r.id));rows.forEach(r=>names[r.id]=(ps[r.id]&&ps[r.id].name)||"")}catch(e){}
+      ONLINE=rows.map(r=>({id:r.id,name:names[r.id]||r.nick||"Jogador",cases:r.cases||{}}));
+      onlineUpdated();
+    },()=>{});
+    onlineOn=true;$("segOnline").disabled=false;
+  }catch(e){}
 }
 
 /* ---------- ranking ---------- */
 let rankMode="local",rankCase="all";
-function openRanking(cid){rankCase=cid||"all";renderRanking();go("ranking")}
+function openRanking(cid){rankCase=cid||"all";if(onlineOn)rankMode="online";renderRanking();go("ranking")}
 $("btnRank").onclick=()=>openRanking("all");
 $("segLocal").onclick=()=>{rankMode="local";renderRanking()};
 $("segOnline").onclick=()=>{rankMode="online";renderRanking()};
 function rows(){
   if(rankMode==="local"){const all=store.get("dp-scores",{});return Object.entries(all).map(([n,cs])=>({name:n,me:n===player,cases:cs}))}
-  return ONLINE.map(r=>({name:NAMES[r.id]||r.nick||"Jogador",me:r.id===UID,cases:r.cases||{}}));
+  return ONLINE.map(r=>({name:r.name,me:r.id===myOnlineId(),cases:r.cases}));
 }
 function renderRanking(){
   $("segLocal").classList.toggle("sel",rankMode==="local");$("segOnline").classList.toggle("sel",rankMode==="online");
-  $("segOnline").disabled=!DB;
+  $("segOnline").disabled=!onlineOn;
   const chips=$("rankChips");chips.innerHTML="";
   [["all","🏅 Geral"],...CASES.map(c=>[c.id,c.emoji+" "+c.title])].forEach(([k,l])=>{const b=el("button",k===rankCase?"sel":"");b.textContent=l;b.onclick=()=>{rankCase=k;renderRanking()};chips.appendChild(b)});
   let list=rows().map(r=>{
@@ -1305,7 +1416,7 @@ function renderRanking(){
   }).filter(r=>r&&r.n>0);
   list.sort((a,b)=>b.stars-a.stars||a.time-b.time);
   const box=$("rankList");box.innerHTML="";
-  if(rankMode==="online"&&!DB){box.appendChild(el("div","empty","Ranking online indisponível aqui. Abra o jogo pelo link do Claude, com login."));return}
+  if(rankMode==="online"&&!onlineOn){box.appendChild(el("div","empty","Ranking online indisponível agora. Confira sua conexão."));return}
   if(!list.length){box.appendChild(el("div","empty",rankCase==="all"?"Ninguém resolveu um caso ainda. Seja o primeiro!":"Ninguém resolveu este caso ainda."));return}
   list.forEach((r,i)=>{
     const medal=["🥇","🥈","🥉"][i]||(i+1);
@@ -1338,7 +1449,7 @@ function askPlayer(first){
   const chips=known.length?el("div","chips"):null;
   if(chips){chips.style.padding="0";known.forEach(n=>{const b=el("button");b.textContent=n;b.onclick=()=>{inp.value=n;done()};chips.appendChild(b)})}
   const btn=el("button","choice main");btn.textContent="Começar a investigar";btn.style.textAlign="center";
-  const done=()=>{const v=inp.value.trim();if(!v){inp.focus();return}player=v;store.set("dp-player",v);closeSheet();renderHome()};
+  const done=()=>{const v=inp.value.trim();if(!v){inp.focus();return}player=v;store.set("dp-player",v);closeSheet();renderHome();go("home");syncLocal()};
   btn.onclick=done;inp.onkeydown=e=>{if(e.key==="Enter")done()};
   const els=[hint(first?"Pra entrar no ranking. Cada pessoa no mesmo celular pode ter o seu.":"Quem está jogando agora?"),inp];
   if(chips)els.push(hint("Ou continue como:"),chips);
@@ -1350,8 +1461,10 @@ function askPlayer(first){
 }
 $("btnPlayer").onclick=()=>askPlayer(false);
 
-renderHome();go("home");
-if(!player)askPlayer(true);
+const startPlay=()=>{renderHome();go("home");if(!player)askPlayer(true)};
+$("btnPlay").onclick=startPlay;$("btnPlay2").onclick=startPlay;
+$("btnHelp").onclick=()=>{go("splash");$("splash").querySelector(".sp-b").scrollTop=0};
+go("splash");
 initOnline();
 </script>
 </body>

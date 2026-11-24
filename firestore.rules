@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Ranking: todo mundo lê; cada jogador grava o próprio placar.
+    match /scores/{id} {
+      allow read: if true;
+      allow create, update: if
+        request.resource.data.keys().hasOnly(['name', 'cases', 'updatedAt']) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 20 &&
+        request.resource.data.cases is map &&
+        request.resource.data.cases.size() <= 30;
+      allow delete: if false;
+    }
+  }
+}
