@@ -1321,7 +1321,14 @@ function record(caseId,st,time,score){
 }
 /* Cole aqui a configuração do seu projeto Firebase (Console → Configurações do projeto → Seus apps → Web).
    Enquanto estiver null, o jogo usa o ranking do Claude (quando aberto pelo Claude) ou só o ranking do aparelho. */
-const FIREBASE_CONFIG=null;
+const FIREBASE_CONFIG={
+  apiKey: "AIzaSyAzwAsTRUQUVD5gbm94Am-dIqKrFnGKdz8",
+  authDomain: "detetive-de-bolso.firebaseapp.com",
+  projectId: "detetive-de-bolso",
+  storageBucket: "detetive-de-bolso.firebasestorage.app",
+  messagingSenderId: "376228265224",
+  appId: "1:376228265224:web:2d3baeb7ed34ed750880bd"
+};
 
 let ONLINE=[],onlineOn=false,onlineReadOnly=false,myOnlineId=()=>null,writeOnline=null;
 const slug=t=>t.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,24)||"x";
