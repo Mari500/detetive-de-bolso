@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detetive de Bolso</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0f1115;--panel:#171a21;--panel2:#1f232c;--line:#2a2f3a;--txt:#e9ebf0;--mut:#9aa1ae;--me:#2f6df6;--acc:#f2b84b;--ok:#3ecf8e;--bad:#ff6b6b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--txt);display:flex;justify-content:center}
+  button,input{font-family:inherit}
+  .app{width:100%;max-width:480px;height:100dvh;position:relative;overflow:hidden;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);transition:transform .28s ease}
+  .screen.off{transform:translateX(100%);visibility:hidden}
+  header{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--panel);border-bottom:1px solid var(--line);min-height:62px}
+  .back{background:var(--panel2);border:1px solid var(--line);color:var(--txt);font:600 13px Inter;cursor:pointer;padding:8px 12px;border-radius:999px;white-space:nowrap}
+  .navbar{display:flex;gap:8px;margin-bottom:10px}
+  .navbar button{flex:1;min-width:0;justify-content:center;padding:12px;font-size:14px;overflow:hidden;text-overflow:ellipsis}
+  .navbar .go-chat{background:var(--me);border-color:var(--me);color:#fff}
+  .avatar{width:42px;height:42px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--panel2)}
+  .avatar svg,.avatar img{width:100%;height:100%;display:block;object-fit:cover}
+  .who{flex:1;min-width:0}
+  .who b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .who small{color:var(--mut);font-size:12px}
+  .who small.typing{color:var(--acc)}
+  .pill{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:999px;padding:8px 11px;font:600 13px Inter;cursor:pointer;display:flex;gap:6px;align-items:center;white-space:nowrap}
+  .pill .n{background:var(--acc);color:#2b1a05;border-radius:999px;padding:1px 7px;font-size:12px}
+  .pill.on{background:var(--acc);color:#2b1a05}
+  .timer{font:600 12px 'JetBrains Mono',monospace;color:var(--acc)}
+  .chat{flex:1;overflow-y:auto;padding:16px 12px 8px;display:flex;flex-direction:column;gap:6px}
+  .msg,.ev,.photo,.dots,.end,.day{flex-shrink:0}
+  .day{align-self:center;font-size:11px;color:var(--mut);background:var(--panel);padding:4px 10px;border-radius:999px;margin-bottom:6px}
+  .msg{max-width:82%;padding:9px 12px;border-radius:16px;font-size:15px;line-height:1.4;animation:pop .18s ease-out}
+  .msg.in{align-self:flex-start;background:var(--panel2);border-bottom-left-radius:4px}
+  .msg.me{align-self:flex-end;background:var(--me);border-bottom-right-radius:4px}
+  .msg.note{align-self:center;background:none;color:var(--mut);font-size:12px;font-style:italic;text-align:center}
+  .ev{align-self:flex-start;max-width:86%;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:12px;padding:10px 12px;animation:pop .18s ease-out}
+  .ev .t{font-size:12px;color:var(--acc);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .ev .c{font-size:14px;line-height:1.45;white-space:pre-line}
+  .ev .c.mono{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:#0b0d11;border-radius:8px;padding:8px}
+  .photo{align-self:flex-start;width:78%;border-radius:14px;overflow:hidden;border:1px solid var(--line);cursor:pointer;position:relative;animation:pop .18s ease-out}
+  .photo svg{display:block;width:100%;height:auto}
+  .photo span{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.7);font-size:12px;font-weight:600;padding:5px 9px;border-radius:999px}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .dots{align-self:flex-start;background:var(--panel2);border-radius:16px;padding:12px 14px;display:flex;gap:4px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:var(--mut);animation:b 1s infinite}
+  .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+  @keyframes b{0%,60%,100%{opacity:.3}30%{opacity:1;transform:translateY(-3px)}}
+  .bottom{background:var(--panel);border-top:1px solid var(--line);padding:10px 12px calc(12px + env(safe-area-inset-bottom))}
+  .tools{display:flex;gap:8px;margin-bottom:10px}
+  .tools .pill{flex:1;justify-content:center}
+  .tools .pill:disabled{opacity:.35;cursor:not-allowed}
+  .choices{display:flex;flex-direction:column;gap:8px;min-height:44px;max-height:40vh;overflow-y:auto}
+  .choice{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:11px 14px;text-align:left;font:500 14px Inter;cursor:pointer}
+  .choice:hover,.choice:focus-visible{border-color:var(--me);outline:none}
+  .choice.main{background:var(--acc);color:#2b1a05;border-color:var(--acc);font-weight:700}
+  .choice.alt{border-color:#6b4fd8;color:#cbbdff}
+  .hint{color:var(--mut);font-size:12px;text-align:center;padding:4px}
+  /* home */
+  .home-b{flex:1;overflow-y:auto;padding:14px 12px 24px;display:flex;flex-direction:column;gap:10px}
+  .hero{padding:4px 4px 8px}
+  .hero h1{font-size:22px;font-weight:800}
+  .hero p{color:var(--mut);font-size:13px;margin-top:2px}
+  .card{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;cursor:pointer;text-align:left;color:var(--txt);width:100%}
+  .card:hover{border-color:var(--acc)}
+  .card .ico{width:54px;height:54px;border-radius:14px;background:var(--panel2);display:grid;place-items:center;font-size:28px;flex-shrink:0}
+  .card .info{flex:1;min-width:0}
+  .card b{display:block;font-size:15px}
+  .card small{display:block;color:var(--mut);font-size:12.5px;line-height:1.35;margin-top:2px}
+  .card .meta{display:flex;gap:8px;align-items:center;margin-top:6px;font-size:12px;color:var(--mut);flex-wrap:wrap}
+  .tag{background:var(--panel2);border-radius:999px;padding:2px 8px}
+  .tag.ok{background:rgba(62,207,142,.15);color:var(--ok)}
+  .tag.go{background:rgba(242,184,75,.15);color:var(--acc)}
+  /* cena */
+  .stage{flex:1;display:flex;flex-direction:column;justify-content:center;padding:12px;gap:12px;overflow:auto;background:#07080b}
+  .stage svg{width:100%;height:auto;border-radius:14px;border:1px solid var(--line);touch-action:manipulation}
+  .hs{cursor:pointer;outline:none}.hs rect.hit{fill:transparent}
+  .hs .mark{opacity:0;transition:opacity .2s}.hs.found .mark{opacity:1}
+  .sceneInfo{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:72px;font-size:14px;line-height:1.45}
+  .sceneInfo b{color:var(--acc)}
+  .prog{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden}
+  .prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+  .tap{fill:none;stroke:rgba(242,184,75,.9);stroke-width:2;animation:ring .7s ease-out forwards;pointer-events:none}
+  @keyframes ring{from{r:4;opacity:1}to{r:26;opacity:0}}
+  .blink{animation:bl 1.2s infinite}@keyframes bl{50%{opacity:.25}}
+  /* contatos */
+  .contacts{padding:12px;display:flex;flex-direction:column;gap:10px;overflow:auto;flex:1}
+  .contact{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;cursor:pointer;text-align:left;color:var(--txt)}
+  .contact .avatar{width:54px;height:54px}
+  .contact b{display:block}.contact small{color:var(--mut);font-size:13px}
+  /* ranking */
+  .seg{display:flex;background:var(--panel2);border-radius:12px;padding:4px;gap:4px;margin:12px 12px 0}
+  .seg button{flex:1;background:none;border:none;color:var(--mut);padding:9px;border-radius:9px;font:600 13px Inter;cursor:pointer}
+  .seg button.sel{background:var(--panel);color:var(--txt)}
+  .seg button:disabled{opacity:.4;cursor:not-allowed}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 12px}
+  .chips button{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:999px;padding:7px 12px;font:600 13px Inter;cursor:pointer;white-space:nowrap}
+  .chips button.sel{border-color:var(--acc);color:var(--acc)}
+  .rank{flex:1;overflow-y:auto;padding:0 12px 20px;display:flex;flex-direction:column;gap:8px}
+  .row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .row.me{border-color:var(--me)}
+  .row .pos{width:28px;text-align:center;font-weight:800;font-size:16px}
+  .row .nm{flex:1;min-width:0}.row .nm b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row .nm small{color:var(--mut);font-size:12px}
+  .row .st{font-size:13px;text-align:right}.row .st small{display:block;color:var(--mut);font:500 12px 'JetBrains Mono',monospace}
+  /* sheet */
+  .overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);display:none;z-index:30}
+  .overlay.open{display:block}
+  .sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;background:var(--panel);border-radius:18px 18px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;transform:translateY(100%);transition:transform .25s ease;z-index:31}
+  .sheet.open{transform:none}
+  .sheet-h{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 10px;gap:10px}
+  .sheet-h h2{font-size:17px}
+  .x{background:none;border:none;color:var(--mut);font-size:24px;cursor:pointer;padding:2px 8px}
+  .sheet-b{overflow-y:auto;padding:0 16px 20px;display:flex;flex-direction:column;gap:10px}
+  .sheet-b .ev{max-width:100%;align-self:stretch;animation:none}
+  .ev.pick{cursor:pointer}.ev.pick:hover{border-color:var(--me)}
+  .sus{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .sus button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:14px;padding:12px 8px;font:600 14px Inter;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .sus button .avatar{width:64px;height:64px}
+  .sus button small{color:var(--mut);font-weight:400;font-size:12px}
+  .sus button:hover{border-color:var(--acc)}
+  .empty{color:var(--mut);font-size:14px;text-align:center;padding:20px}
+  .restart{background:none;border:1px solid var(--line);color:var(--mut);border-radius:10px;padding:10px;font:500 13px Inter;cursor:pointer}
+  .field{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:12px 14px;font-size:16px}
+  .field:focus{outline:none;border-color:var(--acc)}
+  .toast{position:absolute;top:72px;left:50%;transform:translate(-50%,-20px);background:var(--acc);color:#2b1a05;font:600 13px Inter;padding:8px 14px;border-radius:999px;opacity:0;transition:.25s;pointer-events:none;z-index:40;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .end{align-self:center;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:8px 0;max-width:92%}
+  .end b{display:block;font-size:16px;margin-bottom:4px}
+  .end.ok b{color:var(--ok)}.end.bad b{color:var(--bad)}.end.mid b{color:var(--acc)}
+  .end p{color:var(--mut);font-size:13px;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- INÍCIO -->
+  <section class="screen" id="home">
+    <header>
+      <div class="who"><b>🕵️ Detetive de Bolso</b><small id="playerLbl">Jogador: —</small></div>
+      <button class="pill" id="btnPlayer">✎ Trocar</button>
+      <button class="pill" id="btnRank">🏆</button>
+    </header>
+    <div class="home-b">
+      <div class="hero"><h1>Escolha um caso</h1><p>Ranking: mais estrelas primeiro, depois o menor tempo. Acusação errada soma 1 min.</p></div>
+      <div id="caseList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+  </section>
+
+  <!-- CONVERSA PRINCIPAL -->
+  <section class="screen off" id="main">
+    <header>
+      <button class="back" id="toHome" aria-label="Voltar aos casos">‹ Casos</button>
+      <div class="avatar" id="mainAv"></div>
+      <div class="who"><b id="mainName"></b><small id="st-main">online</small></div>
+      <span class="timer" id="timer">00:00</span>
+      <button class="pill" id="turbo" aria-label="Acelerar mensagens">⏩</button>
+      <button class="pill" id="openEv">🔎 <span class="n" id="evCount">0</span></button>
+    </header>
+    <div class="chat" id="chat-main"></div>
+    <div class="bottom">
+      <div class="tools">
+        <button class="pill" id="btnScene" disabled>📷 Examinar cena</button>
+        <button class="pill" id="btnInter" disabled>🗣️ Interrogar</button>
+      </div>
+      <div class="choices" id="ch-main"></div>
+    </div>
+  </section>
+
+  <!-- CENA -->
+  <section class="screen off" id="scene">
+    <header>
+      <button class="back" data-back="main" aria-label="Voltar pra conversa">‹ Conversa</button>
+      <div class="who"><b id="sceneTitle"></b><small id="sceneCount"></small></div>
+    </header>
+    <div class="stage">
+      <div id="sceneSvg"></div>
+      <div class="prog"><i id="sceneProg"></i></div>
+      <div class="sceneInfo" id="sceneInfo"></div>
+    </div>
+    <div class="bottom"><div class="navbar"><button class="pill go-chat" data-back="main"></button></div></div>
+  </section>
+
+  <!-- SUSPEITOS -->
+  <section class="screen off" id="contacts">
+    <header>
+      <button class="back" data-back="main" aria-label="Voltar pra conversa">‹ Conversa</button>
+      <div class="who"><b>Interrogatório</b><small>Escolha com quem falar</small></div>
+    </header>
+    <div class="contacts" id="contactList"></div>
+    <div class="bottom"><div class="navbar"><button class="pill go-chat" data-back="main"></button></div></div>
+  </section>
+
+  <!-- INTERROGATÓRIO -->
+  <section class="screen off" id="inter">
+    <header>
+      <button class="back" data-back="contacts" aria-label="Voltar aos suspeitos">‹ Suspeitos</button>
+      <div class="avatar" id="interAv"></div>
+      <div class="who"><b id="interName"></b><small id="st-inter">online</small></div>
+      <button class="pill" id="openEv2">🔎</button>
+    </header>
+    <div class="chat" id="chat-inter"></div>
+    <div class="bottom">
+      <div class="navbar"><button class="pill" data-back="contacts">👥 Outros suspeitos</button><button class="pill go-chat" data-back="main"></button></div>
+      <div class="choices" id="ch-inter"></div></div>
+  </section>
+
+  <!-- RANKING -->
+  <section class="screen off" id="ranking">
+    <header>
+      <button class="back" data-back="home" aria-label="Voltar aos casos">‹ Casos</button>
+      <div class="who"><b>🏆 Ranking</b><small id="rankSub">Mais estrelas, depois menor tempo</small></div>
+    </header>
+    <div class="seg"><button id="segLocal" class="sel">Neste aparelho</button><button id="segOnline">Online</button></div>
+    <div class="chips" id="rankChips"></div>
+    <div class="rank" id="rankList"></div>
+  </section>
+
+  <div class="overlay" id="ov"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-h"><h2 id="sheetTitle"></h2><button class="x" id="closeSheet" aria-label="Fechar">×</button></div>
+    <div class="sheet-b" id="sheetBody"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* =====================================================================
+   CASOS — cada caso é um objeto. Para criar um novo, copie um e edite.
+   Coordenadas das cenas: viewBox 360 x 300.
+===================================================================== */
+const room=(wall,floor,fy=226)=>`<rect width="360" height="300" fill="${wall}"/><rect y="${fy}" width="360" height="${300-fy}" fill="${floor}"/><path d="M0 ${fy}H360" stroke="#000" stroke-opacity=".35" stroke-width="3"/>`;
+const bin=(x,y,c="#4a4f5c")=>`<path d="M${x} ${y+4} h26 l-3 ${26} h-20z" fill="${c}"/><rect x="${x-2}" y="${y}" width="30" height="5" rx="1" fill="#5c6272"/>`;
+const T=(x,y,s,txt,fill="#2b2f3a",w=700,a="middle")=>`<text x="${x}" y="${y}" font-family="Inter,sans-serif" font-size="${s}" font-weight="${w}" fill="${fill}" text-anchor="${a}">${txt}</text>`;
+
+const CASES=[
+/* ------------------------------------------------------------------ 1 */
+{
+  id:"grao", emoji:"☕", title:"Caso Grão Fino", place:"Café Grão Fino", diff:2,
+  tagline:"R$ 3.200 sumiram do cofre de um café. Sem arrombamento.",
+  contact:{k:"bia",name:"Bia · Café Grão Fino"}, day:"Domingo, 08:12", minEv:7,
+  photos:{"rafa": "data:image/jpeg;base64,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", "teo": "data:image/jpeg;base64,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", "bia": "data:image/jpeg;base64,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", "cida": "data:image/jpeg;base64,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"},
+  faces:{
+    bia:{bg:"#f2b84b",skin:"#c98b5e",hair:"#2a1a12",style:"curly",lips:"#9c5a48",shirt:"#c98a2b"},
+    rafa:{bg:"#4a7bd0",skin:"#e0b08a",hair:"#3b2a1f",style:"short",lips:"#a86b5a",beard:true,shirt:"#222"},
+    teo:{bg:"#3ecf8e",skin:"#8a5a3b",hair:"#111",style:"buzz",lips:"#6b3f2c",cap:"#e0533f",shirt:"#5a606e"},
+    cida:{bg:"#b07acb",skin:"#f0c9a5",hair:"#cfcfd6",style:"bun",lips:"#d4202f",lipstick:true,glasses:true,pin:true,shirt:"#a98bd1"}
+  },
+  scene:{title:"Escritório do café", art:`<rect width="360" height="300" fill="#2c3140"/>
+  <rect y="226" width="360" height="74" fill="#3d3029"/>
+  <path d="M0 226H360" stroke="#1c1814" stroke-width="3"/>
+  <!-- janela -->
+  <rect x="130" y="28" width="96" height="66" fill="#0c1a33" stroke="#555c6b" stroke-width="4"/>
+  <circle cx="204" cy="46" r="9" fill="#e9e3c4"/><path d="M178 28v66M130 61h96" stroke="#555c6b" stroke-width="3"/>
+  <!-- quadro -->
+  <rect x="34" y="40" width="64" height="44" rx="3" fill="#6b4b33"/><rect x="40" y="46" width="52" height="32" fill="#f2b84b"/>
+  <text x="66" y="66" text-anchor="middle" font-family="Inter" font-size="9" font-weight="700" fill="#2b1a05">GRÃO FINO</text>
+  <!-- porta + painel -->
+  <rect x="14" y="98" width="66" height="128" fill="#5a4636" stroke="#3a2c21" stroke-width="3"/><circle cx="70" cy="166" r="3" fill="#c9b27a"/>
+  <rect x="90" y="132" width="16" height="26" rx="2" fill="#1d2027" stroke="#666" stroke-width="1"/>
+  <g fill="#7f8796"><circle cx="95" cy="139" r="1.4"/><circle cx="101" cy="139" r="1.4"/><circle cx="95" cy="145" r="1.4"/><circle cx="101" cy="145" r="1.4"/><circle cx="95" cy="151" r="1.4"/><circle cx="101" cy="151" r="1.4"/></g>
+  <circle cx="98" cy="134.5" r="1.2" fill="#3ecf8e" class="blink"/>
+  <!-- prateleira + roteador -->
+  <rect x="244" y="78" width="104" height="6" fill="#6b4b33"/>
+  <rect x="262" y="58" width="62" height="20" rx="4" fill="#1b1d22"/>
+  <path d="M272 58l-6-16M314 58l6-16" stroke="#1b1d22" stroke-width="3" stroke-linecap="round"/>
+  <g><circle cx="276" cy="68" r="2" fill="#3ecf8e" class="blink"/><circle cx="284" cy="68" r="2" fill="#3ecf8e"/><circle cx="292" cy="68" r="2" fill="#f2b84b" class="blink"/></g>
+  <!-- cofre aberto -->
+  <rect x="270" y="150" width="70" height="76" rx="4" fill="#4e5563"/><rect x="278" y="158" width="54" height="60" fill="#14161b"/>
+  <path d="M340 152 L354 160 L354 222 L340 226Z" fill="#636b7a"/><circle cx="348" cy="190" r="4" fill="#2c3140"/>
+  <path d="M286 204h38" stroke="#2c3140" stroke-width="2"/>
+  <!-- mesa -->
+  <rect x="118" y="164" width="140" height="10" rx="2" fill="#7a5638"/><rect x="126" y="174" width="8" height="52" fill="#5c412a"/><rect x="242" y="174" width="8" height="52" fill="#5c412a"/>
+  <!-- notebook -->
+  <path d="M140 164 L150 136 L188 136 L184 164Z" fill="#2a2e36"/><rect x="136" y="162" width="54" height="4" rx="1" fill="#3a3f4a"/>
+  <!-- xícara com batom -->
+  <path d="M202 146 h18 v14 q0 6 -9 6 q-9 0 -9 -6z" fill="#efeae2"/><path d="M220 150 q7 0 6 6 q-1 4 -6 3" stroke="#efeae2" stroke-width="2.5" fill="none"/>
+  <path d="M204 147 q4 3 8 0" stroke="#d4202f" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <!-- cadeira + jaqueta -->
+  <rect x="76" y="156" width="44" height="8" rx="2" fill="#262a33"/><rect x="80" y="164" width="6" height="62" fill="#262a33"/><rect x="110" y="164" width="6" height="62" fill="#262a33"/>
+  <rect x="76" y="186" width="44" height="7" rx="2" fill="#262a33"/>
+  <path d="M74 156 Q98 150 122 156 L118 206 Q108 212 98 206 Q88 212 78 206Z" fill="#3d7a4a"/><path d="M98 156 V206" stroke="#2c5a36" stroke-width="2"/>
+  <!-- lixeira -->
+  <path d="M210 202 h24 l-3 24 h-18z" fill="#4a4f5c"/><rect x="208" y="199" width="28" height="4" rx="1" fill="#5c6272"/>
+  <rect x="215" y="191" width="9" height="12" rx="2" fill="#2f9be0" transform="rotate(-18 219 197)"/>
+  <!-- grampo -->
+  <path d="M292 241 l22 -4" stroke="#e8e8f0" stroke-width="2.2" stroke-linecap="round"/><path d="M292 244 l20 -3" stroke="#bfc0cc" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- papéis no chão -->
+  <path d="M190 252 l22 -6 l6 14 l-22 6z" fill="#d9d4c7" opacity=".8"/><path d="M226 262 l18 2 l-2 12 l-18 -2z" fill="#d9d4c7" opacity=".6"/>`, hs:{
+    cofre:{x:262,y:142,w:86,h:84,ev:"cofre",txt:"<b>Cofre:</b> aberto, sem nenhum arranhão. Quem abriu sabia a senha."},
+    jaqueta:{x:70,y:150,w:56,h:76,ev:"jaqueta",txt:"<b>Cadeira:</b> uma jaqueta verde de entregador. É do Téo."},
+    xicara:{x:196,y:136,w:30,h:30,ev:"xicara",txt:"<b>Xícara:</b> marca de <b>batom vermelho</b> na borda. A Bia diz que lavou todas no sábado à tarde."},
+    painel:{x:86,y:128,w:24,h:34,flag:"painel",txt:"<b>Fechadura digital:</b> esse modelo guarda o histórico de quem digitou o código. Pergunte à Bia."},
+    roteador:{x:250,y:40,w:84,h:40,flag:"roteador",txt:"<b>Roteador:</b> luzinhas piscando. Será que ele registra os aparelhos conectados?"},
+    janela:{x:130,y:28,w:96,h:66,ev:"janela",txt:"<b>Janela:</b> trancada por dentro, sem marcas. Ninguém entrou por aqui."},
+    boleto:{x:184,y:240,w:68,h:40,ev:"boleto",txt:"<b>Papéis no chão:</b> um boleto vencido, “ÚLTIMO AVISO”, em nome de <b>Maria Aparecida S.</b>"},
+    grampo:{x:286,y:230,w:36,h:22,ev:"grampo",txt:"<b>Chão, perto do cofre:</b> um grampo de cabelo prateado."},
+    lixeira:{x:204,y:194,w:34,h:34,ev:"energetico",txt:"<b>Lixeira:</b> uma lata de energético amassada."}
+  }},
+  ev:{
+    cofre:{t:"🧰 Cofre aberto",c:"Sem marcas de arrombamento.\nFaltam R$ 3.200 do caixa de sábado."},
+    jaqueta:{t:"🧥 Jaqueta do Téo",c:"Encontrada na cadeira do escritório."},
+    xicara:{t:"☕ Xícara com batom",c:"Marca de batom vermelho. Todas as xícaras foram lavadas no sábado à tarde."},
+    porta:{t:"🔐 Registro da fechadura",mono:true,c:"SÁB  21:58  Rafa (código pessoal)\nSÁB  22:15  Rafa (código pessoal)\nSÁB  22:47  CÓDIGO MESTRE\nSÁB  22:53  CÓDIGO MESTRE"},
+    camera:{t:"🎥 Câmera dos fundos",mono:true,c:"22:05  Téo entra com caixas de leite (de jaqueta)\n22:09  Téo sai (sem jaqueta)\n22:09 → 07:00  ninguém mais passa"},
+    cameraFrente:{t:"⚠️ Câmera da frente",c:"Quebrada desde quinta. A Bia só contou isso pra Tia Cida."},
+    ponto:{t:"🕒 Ponto do Rafa",mono:true,c:"Entrada: 14:02\nSaída:   22:15"},
+    comprovante:{t:"🧾 Comanda do Bar do Zé",c:"Aberta às 22:41 · fechada às 00:30.\nO bar fica a ~25 min do café."},
+    divida:{t:"💸 Adiantamento",c:"Téo pediu adiantamento semana passada. Está devendo aluguel."},
+    cida:{t:"💬 Álibi da Tia Cida",c:"\"Dormi cedinho, às 21h já tava na cama.\""},
+    wifi:{t:"📶 Log do roteador",mono:true,c:"SÁB  22:44  conectado: Galaxy-Cida\nSÁB  22:53  desconectado: Galaxy-Cida"},
+    janela:{t:"🪟 Janela trancada",c:"Trancada por dentro, sem marcas. Ninguém entrou pela janela."},
+    boleto:{t:"📄 Boleto vencido",c:"“ÚLTIMO AVISO” · R$ 3.100\nEm nome de Maria Aparecida S."},
+    grampo:{t:"📍 Grampo de cabelo",c:"Grampo prateado no chão, ao lado do cofre."},
+    energetico:{t:"🥤 Lata de energético",c:"Amassada, na lixeira do escritório."},
+    contradicao:{t:"🗣️ Cida mudou a versão",c:"Confrontada, admitiu que passou no café \"só pra pegar um documento\" às 22h40."}
+  },
+  nodes:{
+    start:{msgs:[{b:"Oi, tá aí? 😰"},{b:"Roubaram o caixa do café ontem à noite. R$ 3.200."},{b:"Me ajuda? Você é a pessoa mais detalhista que eu conheço."}],choices:[{l:"Calma. Me conta o que aconteceu.",to:"fatos"}]},
+    fatos:{msgs:[{b:"Cheguei às 7h e o cofre do escritório tava aberto."},{b:"Eu tava no casamento da minha prima, só voltei de madrugada."},{b:"Tirei uma foto de como encontrei tudo. Não mexi em nada:"},{photo:true}],unlock:["scene"]},
+    quem:{msgs:[{b:"O Rafa, meu barista, fechou a loja."},{b:"O Téo, entregador, passou pra deixar o leite."},{b:"E a Tia Cida tem chave de tudo, mas disse que nem saiu de casa."},{b:"Te passei o contato deles, pode interrogar direto."}],unlock:["inter"]},
+    porta:{msgs:[{b:"Guarda sim! Tirei print:"},{ev:"porta"},{b:"Cada funcionário tem código próprio."},{b:"O código mestre… só eu e a Tia Cida sabemos."}]},
+    camera:{msgs:[{b:"A da frente tá quebrada desde quinta 🙄"},{ev:"cameraFrente"},{b:"A dos fundos pegou isso:"},{ev:"camera"}]},
+    rafa:{msgs:[{b:"Ele bateu o ponto e saiu."},{ev:"ponto"}]},
+    teo:{msgs:[{b:"Semana passada ele me pediu adiantamento. Tá devendo aluguel."},{ev:"divida"},{b:"Não queria pensar isso dele…"}]},
+    cida:{msgs:[{b:"Ela me mandou isso hoje cedo:"},{ev:"cida"},{b:"Ela me ajuda tanto… às vezes até fecha o caixa pra mim."}]},
+    batom:{msgs:[{b:"Batom? Eu não uso, nem ninguém da equipe."},{b:"Mas a Tia Cida nunca sai sem batom vermelho. 😶"}]},
+    boleto:{msgs:[{b:"Maria Aparecida… é o nome da Tia Cida. 😟"},{b:"R$ 3.100? Ela nunca me falou de dívida nenhuma."}]},
+    grampo:{msgs:[{b:"Ninguém aqui usa grampo. Só a Tia Cida, com aquele coque dela."}]},
+    wifi:{msgs:[{b:"Nossa, nem pensei nisso! Deixa eu entrar no painel do roteador…"},{b:"…"},{ev:"wifi"},{b:"Esse é o celular da Tia Cida. 💔"}]}
+  },
+  hub:[
+    {id:"quem",l:"Quem esteve no café ontem à noite?",req:["fatos"]},
+    {id:"porta",l:"A fechadura digital guarda registro?",req:["f:painel"]},
+    {id:"camera",l:"Tem câmera no café?",req:["fatos"]},
+    {id:"rafa",l:"Que horas o Rafa saiu?",req:["quem"]},
+    {id:"teo",l:"O Téo tem algum problema?",req:["quem"]},
+    {id:"cida",l:"O que a Tia Cida disse?",req:["quem"]},
+    {id:"batom",l:"Alguém da equipe usa batom vermelho?",req:["e:xicara"]},
+    {id:"boleto",l:"De quem é esse boleto no chão?",req:["e:boleto"]},
+    {id:"grampo",l:"Alguém aqui usa grampo de cabelo?",req:["e:grampo"]},
+    {id:"wifi",l:"Dá pra ver quem usou o Wi-Fi ontem?",req:["f:roteador","quem"]}
+  ],
+  sus:{
+    rafa:{n:"Rafa",d:"barista · fechou a loja",
+      q:[{l:"Onde você estava ontem depois das 22h?",a:["Fechei tudo e saí 22:15.","Fui direto pro Bar do Zé encontrar a galera."],ev:"comprovante",pre:"Olha a comanda:"},
+         {l:"Você sabe o código mestre?",a:["Não! Só tenho o meu código. O mestre é coisa da Bia."]},
+         {l:"Viu algo estranho ao fechar?",a:["O Téo deixou o leite e saiu correndo, acho que esqueceu alguma coisa."]}],
+      react:{porta:["Viu? Meu código só aparece até 22:15. Depois disso não fui eu."],comprovante:["Isso. Tava lá até meia-noite e meia."],xicara:["Batom? 😂 Eu não, né."],divida:["Pô, o Téo é gente boa… duvido."],wifi:["Galaxy-Cida? Ué, a tia da Bia tava aqui?"],janela:["Eu tranquei tudo antes de sair, sempre confiro."],energetico:["Isso é do Téo, ele vive tomando."]},
+      def:["Não sei o que isso tem a ver comigo."]},
+    teo:{n:"Téo",d:"entregador",
+      q:[{l:"O que você fez no café ontem?",a:["Deixei as caixas de leite pelos fundos, umas 22h.","Tava atrasado, entrei e saí rapidinho."]},
+         {l:"Por que sua jaqueta tava no escritório?",a:["Ah, então foi lá que eu deixei! Tava calor, tirei pra carregar as caixas."]},
+         {l:"Você tá precisando de dinheiro?",a:["…Tô. Tô devendo aluguel, todo mundo sabe.","Mas eu nunca pegaria nada da Bia."]}],
+      react:{camera:["Taí! Saí 22:09. Pode ver que não voltei."],jaqueta:["É minha sim, esqueci lá."],divida:["Dever não é crime, pô. 😔"],porta:["Eu nem sei código nenhum."],xicara:["Eu nem tomo café, sou do energético."],energetico:["É minha 😅 Tomei na entrega e joguei no lixo do escritório."],boleto:["Maria Aparecida? Não conheço, não."]},
+      def:["Não entendi. Isso prova o quê?"]},
+    cida:{n:"Tia Cida",d:"tia da Bia",
+      q:[{l:"Onde a senhora estava ontem à noite?",a:["Em casa, meu bem. Dormi cedinho, umas 21h.","Nem vi o celular a noite toda."]},
+         {l:"A senhora sabe o código mestre?",a:["Sei, a Bia me passou pra eu fechar o caixa quando ela viaja."]},
+         {l:"Sabia que a câmera da frente tava quebrada?",a:["Ah… acho que a Bia comentou, sim.","Por quê?"]}],
+      react:{
+        wifi:{a:["…","Tá bom. Eu passei lá, sim. Rapidinho, umas 22h40.","Fui pegar um documento que esqueci. Só isso!"],gain:"contradicao"},
+        xicara:["Batom vermelho? Meu bem, metade de Goiânia usa batom vermelho."],
+        porta:["Código mestre às 22:47? Não fui eu. Deve ter sido a própria Bia."],
+        cameraFrente:["E daí que eu sabia? Isso não quer dizer nada."],
+        cida:["Isso, foi o que eu disse. Dormi cedo."],
+        boleto:["…Onde você achou isso?","Tá. Eu tô devendo, sim. Mas uma coisa não tem nada a ver com a outra!"],
+        grampo:["Grampo eu uso, todo mundo sabe. Devo ter deixado num outro dia."],
+        contradicao:["Já falei, fui pegar um documento! Não aguento mais essas perguntas."]},
+      def:["Não sei do que você tá falando, meu bem."]}
+  },
+  acc:{
+    who:[["rafa","Rafa","barista"],["teo","Téo","entregador"],["cida","Tia Cida","tia da Bia"],["bia","Bia","a dona"]],
+    how:[["mestre","Digitou o código mestre e entrou pela frente"],["fundos","Entrou pelos fundos durante a entrega"],["janela","Forçou a janela do escritório"],["pessoal","Usou o próprio código de funcionário"]],
+    why:[["divida","Estava com uma dívida vencida"],["aluguel","Precisava pagar o aluguel atrasado"],["raiva","Queria se vingar da Bia"],["armacao","Não houve roubo: foi armação pro seguro"]],
+    answer:{who:"cida",how:"mestre",why:"divida"},
+    strong:["wifi","contradicao"], medium:["porta","cameraFrente","xicara","grampo"],
+    hintHow:"o registro mostra o código mestre às 22:47", hintWhy:"procure algo da pessoa no chão do escritório",
+    wrong:{
+      rafa:["O Rafa saiu 22:15 e às 22:41 já tava no Bar do Zé, a 25 min daqui.","E o cofre foi aberto com o código mestre. Ele nem sabe esse código…"],
+      teo:["A câmera mostra o Téo saindo 22:09, e ninguém mais passou pelos fundos.","E o escritório foi aberto 22:47 com o código mestre, que ele não tem."],
+      bia:["EU?? 😂 Eu tava num casamento com 200 testemunhas!","Foca, detetive. Quem mais sabia o código mestre?"]},
+    wrongHint:"Quem sabia o código mestre? E quem estava no café às 22:47?",
+    ending:["Ela disse que tava dormindo… mas usou o código mestre que só nós duas sabemos.","Sabia que a câmera da frente tava quebrada. E aquele boleto de R$ 3.100…","Liguei pra ela. Ela chorou e confessou. Ia pagar a dívida e devolver antes de eu perceber.","Obrigada por enxergar o que eu não queria ver. 🙏"]
+  }
+},
+/* ------------------------------------------------------------------ 2 */
+{
+  id:"arara", emoji:"🦜", title:"A Arara Sumiu", place:"Pet Shop Bicho Feliz", diff:1,
+  tagline:"A arara mais famosa do bairro sumiu da gaiola num domingo.",
+  contact:{k:"duda",name:"Duda · Pet Shop Bicho Feliz"}, day:"Segunda, 07:40", minEv:6,
+  faces:{
+    duda:{bg:"#3ecf8e",skin:"#e8b890",hair:"#c0662b",style:"pony",lips:"#b5655a",shirt:"#2f9e6e",earrings:"#f2b84b"},
+    caio:{bg:"#4a7bd0",skin:"#d9a27a",hair:"#1b1b1b",style:"short",lips:"#9b5f4c",shirt:"#2f6df6",mustache:true},
+    livia:{bg:"#e06fa6",skin:"#f2cfb3",hair:"#e8d27a",style:"long",lips:"#c94a70",lipstick:true,shirt:"#fff",earrings:"#fff"},
+    arnaldo:{bg:"#8a8f99",skin:"#c98b5e",hair:"#ddd",style:"bald",lips:"#8a4e3b",glasses:true,mustache:true,shirt:"#6b4b33"}
+  },
+  scene:{title:"Pet shop, segunda de manhã", art:`
+    ${room("#25403d","#3b3127")}
+    <rect x="20" y="30" width="80" height="58" fill="#0c1a33" stroke="#4d6b66" stroke-width="4"/><path d="M60 30v58M20 59h80" stroke="#4d6b66" stroke-width="3"/>
+    <path d="M28 52 l10 -8 l10 8" stroke="#eee" fill="none" opacity=".25"/>
+    <rect x="18" y="124" width="116" height="6" fill="#6b4b33"/>
+    <rect x="24" y="98" width="20" height="26" rx="2" fill="#e0a83a"/><rect x="48" y="102" width="20" height="22" rx="2" fill="#7fb24a"/>
+    <rect x="72" y="100" width="20" height="24" fill="none" stroke="#8a8f99" stroke-dasharray="3 3"/>
+    <rect x="96" y="98" width="20" height="26" rx="2" fill="#d96a3a"/>
+    ${T(34,114,6,"🌻","#000",400)}
+    <rect x="18" y="172" width="122" height="54" fill="#5c412a"/><rect x="14" y="166" width="130" height="8" rx="2" fill="#7a5638"/>
+    <rect x="36" y="154" width="42" height="12" rx="1" fill="#e9e3d2"/><path d="M57 154v12" stroke="#b9b2a0"/>
+    ${T(76,206,9,"BICHO FELIZ","#f2b84b",800)}
+    <path d="M190 70 Q240 40 290 70" fill="none" stroke="#c9b27a" stroke-width="3"/>
+    <rect x="190" y="70" width="100" height="140" fill="none" stroke="#c9b27a" stroke-width="3"/>
+    <g stroke="#c9b27a" stroke-width="1.5">${[...Array(9)].map((_,i)=>`<path d="M${200+i*10} 70v140"/>`).join("")}</g>
+    <path d="M204 120h40" stroke="#7a5638" stroke-width="4"/>
+    <rect x="252" y="140" width="30" height="40" fill="#25403d"/>
+    <path d="M282 140 L306 132 L306 186 L282 180Z" fill="none" stroke="#c9b27a" stroke-width="2"/>
+    <rect x="297" y="190" width="10" height="9" rx="1.5" fill="#d4af37"/><path d="M299 190 v-5 q3 -6 6 0" stroke="#d4af37" stroke-width="1.6" fill="none"/>
+    <rect x="184" y="210" width="112" height="8" fill="#5c412a"/><rect x="204" y="218" width="8" height="8" fill="#3b2b1e"/><rect x="268" y="218" width="8" height="8" fill="#3b2b1e"/>
+    <rect x="322" y="96" width="34" height="130" fill="#5a4636" stroke="#3a2c21" stroke-width="3"/><circle cx="328" cy="164" r="3" fill="#c9b27a"/>
+    <rect x="304" y="100" width="14" height="22" rx="2" fill="#e9eef2"/><circle cx="311" cy="105" r="2" fill="#ff6b6b" class="blink"/><rect x="306" y="110" width="10" height="8" fill="#9aa1ae"/>
+    ${bin(146,198)}<rect x="152" y="188" width="14" height="12" fill="#f4f0e6" transform="rotate(-12 159 194)"/>
+    <g><ellipse cx="252" cy="242" rx="6" ry="2.5" fill="#2f9be0" transform="rotate(-20 252 242)"/><ellipse cx="276" cy="238" rx="5" ry="2" fill="#f2c23a" transform="rotate(15 276 238)"/><ellipse cx="300" cy="245" rx="6" ry="2.5" fill="#2f9be0" transform="rotate(-35 300 245)"/><ellipse cx="322" cy="238" rx="5" ry="2" fill="#f2c23a"/></g>`,
+    hs:{
+      janela:{x:16,y:26,w:88,h:66,ev:"janela",txt:"<b>Janela:</b> trancada por dentro, vidro inteiro. Ninguém entrou por aqui."},
+      sementes:{x:18,y:94,w:118,h:36,ev:"sementes",txt:"<b>Prateleira:</b> falta um pacote de <b>semente de girassol</b>, a comida preferida da Pipoca."},
+      agenda:{x:32,y:148,w:52,h:22,ev:"agenda",txt:"<b>Agenda do balcão:</b> “Sábado — Lívia ligou 3x perguntando da arara.”"},
+      gaiola:{x:186,y:40,w:116,h:178,ev:"gaiola",txt:"<b>Gaiola:</b> portinha aberta, cadeado aberto <b>com chave</b>, sem nenhum dano."},
+      painel:{x:300,y:96,w:22,h:30,flag:"painel",txt:"<b>Alarme:</b> esse painel registra quem desliga e liga. Pergunte à Duda."},
+      lixeira:{x:142,y:184,w:34,h:44,ev:"nota",txt:"<b>Lixeira:</b> uma nota fiscal amassada de uma <b>caixa de transporte para aves</b>."},
+      penas:{x:238,y:228,w:96,h:26,ev:"penas",txt:"<b>Chão:</b> penas azuis e amarelas fazendo um caminho… até a <b>porta da frente</b>."}
+    }},
+  ev:{
+    gaiola:{t:"🔓 Gaiola aberta",c:"Cadeado aberto com chave. Nenhum dano."},
+    sementes:{t:"🌻 Sementes sumiram",c:"Quem levou a arara levou também a comida preferida dela."},
+    agenda:{t:"📒 Agenda",c:"Sábado: Lívia ligou 3x perguntando da arara."},
+    nota:{t:"🧾 Nota fiscal",c:"Caixa de transporte para aves (G)\nSábado, 18:02 · Pix de CAIO R."},
+    penas:{t:"🪶 Penas no chão",c:"Caminho de penas da gaiola até a porta da frente."},
+    janela:{t:"🪟 Janela trancada",c:"Trancada por dentro. Ninguém entrou pela janela."},
+    alarme:{t:"🚨 Log do alarme",mono:true,c:"DOM 19:12  DESATIVADO  senha EQUIPE\nDOM 19:31  ATIVADO     senha EQUIPE"},
+    chaves:{t:"🔑 Chaves e senha",c:"Chave da loja e senha da equipe: só a Duda e o Caio."},
+    praia:{t:"🏖️ Duda na praia",c:"Duda passou o domingo na praia com a mãe. Fotos com horário."},
+    oferta:{t:"💰 Oferta recusada",c:"Lívia ofereceu R$ 5 mil pela Pipoca. A Duda recusou."},
+    ameaca:{t:"😠 Ameaça do vizinho",c:"Seu Arnaldo: “Um dia essa arara some e o bairro volta a dormir.”"},
+    story:{t:"📱 Story da Lívia",c:"Domingo, 20:40: “Chegou a nova moradora 💚” com uma arara azul e amarela."},
+    culto:{t:"⛪ Álibi do Arnaldo",c:"No culto até 21h. O pastor confirma."},
+    contradicao:{t:"🗣️ Caio confessou",c:"Admitiu que vendeu a Pipoca pra Lívia por R$ 3 mil."}
+  },
+  nodes:{
+    start:{msgs:[{b:"Socorro!! 😭"},{b:"A Pipoca sumiu. A arara da loja!"},{b:"Domingo a loja fica fechada, e hoje cedo a gaiola tava vazia."}],choices:[{l:"Calma, Duda. O que você encontrou?",to:"fatos"}]},
+    fatos:{msgs:[{b:"Tirei foto antes de mexer em qualquer coisa:"},{photo:true},{b:"Ela é dócil, mas não sai da gaiola sozinha de jeito nenhum."}],unlock:["scene"]},
+    quem:{msgs:[{b:"Chave da loja e senha do alarme, só eu e o Caio, meu tosador."},{ev:"chaves"},{b:"E eu passei o domingo na praia com a minha mãe, tenho as fotos."},{ev:"praia"},{b:"Mas tem duas pessoas que eu não paro de pensar: a Lívia, uma cliente, e o Seu Arnaldo, o vizinho."},{b:"Te passei o contato de todo mundo."}],unlock:["inter"]},
+    alarme:{msgs:[{b:"Registra! Puxei aqui:"},{ev:"alarme"},{b:"Domingo à noite?? A loja tava fechada! 😳"}]},
+    livia:{msgs:[{b:"A Lívia é apaixonada pela Pipoca. Semana passada me ofereceu 5 mil nela."},{ev:"oferta"},{b:"Eu disse que não vendia. Ela saiu brava."}]},
+    arnaldo:{msgs:[{b:"O Seu Arnaldo odeia o barulho da Pipoca. Já reclamou mil vezes."},{ev:"ameaca"}]},
+    story:{msgs:[{b:"Peraí, vou olhar…"},{b:"…"},{ev:"story"},{b:"ESSA É A PIPOCA. Eu conheço aquela pena torta da asa. 😡"}]},
+    nota:{msgs:[{b:"Caixa de transporte? A gente não vende isso aqui."},{b:"E esse Pix… Caio R. é o Caio. 😶"}]}
+  },
+  hub:[
+    {id:"quem",l:"Quem tem acesso à loja?",req:["fatos"]},
+    {id:"alarme",l:"O alarme guarda registro?",req:["f:painel"]},
+    {id:"livia",l:"Quem é essa Lívia?",req:["quem"]},
+    {id:"arnaldo",l:"E o Seu Arnaldo?",req:["quem"]},
+    {id:"story",l:"A Lívia postou alguma coisa no domingo?",req:["livia"]},
+    {id:"nota",l:"Vocês vendem caixa de transporte?",req:["e:nota"]}
+  ],
+  sus:{
+    caio:{n:"Caio",d:"tosador",
+      q:[{l:"O que você fez no domingo?",a:["Fiquei em casa vendo o jogo.","Nem saí, juro."]},
+         {l:"Você tem aves em casa?",a:["Tenho uma calopsita, a Nina."]},
+         {l:"Quem sabe a senha do alarme?",a:["Eu e a Duda. Por quê?"]}],
+      react:{
+        nota:["Ah, isso… comprei pra Nina. Ela é grandinha."],
+        alarme:["Deve ser erro do sistema, isso vive dando pau."],
+        story:{a:["…","Tá bom. A Lívia me ofereceu 3 mil.","Eu tava precisando. Achei que a Duda ia culpar o Seu Arnaldo."],gain:"contradicao"},
+        penas:["Penas? Sei lá, ela vive soltando pena."],
+        oferta:["5 mil? Nossa… não sabia."]},
+      def:["Isso aí não tem nada a ver comigo."]},
+    livia:{n:"Lívia",d:"cliente",
+      q:[{l:"Você comprou a Pipoca?",a:["Não! A Duda não quis vender. Desisti."]},
+         {l:"Onde você estava no domingo à noite?",a:["Em casa, recebendo uma visita."]}],
+      react:{
+        story:["Comprei de um criador legalizado, ué. 🙄"],
+        nota:["Caio? Não conheço nenhum Caio."],
+        agenda:["Liguei porque sou cliente. Proibido agora?"],
+        contradicao:["…Eu paguei! Achei que era dele pra vender!"]},
+      def:["Não sei do que você está falando."]},
+    arnaldo:{n:"Seu Arnaldo",d:"vizinho",
+      q:[{l:"O senhor ameaçou a arara?",a:["Falei no calor da raiva.","Mas eu lá ia roubar bicho? Tenho 72 anos!"]},
+         {l:"Onde o senhor estava domingo à noite?",a:["No culto até 21h. Depois, em casa."],ev:"culto",pre:"O pastor confirma, pode perguntar."}],
+      react:{
+        janela:["Tá vendo? Nem tem como entrar."],
+        ameaca:["Falei, falei. Mas falar não é fazer."],
+        alarme:["Eu nem sei mexer nesses negócios de alarme, filho."]},
+      def:["Não entendi nada."]}
+  },
+  acc:{
+    who:[["caio","Caio","tosador"],["livia","Lívia","cliente"],["arnaldo","Seu Arnaldo","vizinho"],["duda","Duda","a dona"]],
+    how:[["senha","Abriu com a chave e desligou o alarme com a senha da equipe"],["janela","Entrou pela janela e abriu o cadeado"],["sabado","Levou a arara no sábado, no meio dos clientes"],["arrombou","Arrombou a gaiola"]],
+    why:[["venda","Vendeu a arara pra quem queria comprar"],["barulho","Queria se livrar do barulho"],["vinganca","Vingança contra a Duda"],["soltar","Quis soltar a arara na natureza"]],
+    answer:{who:"caio",how:"senha",why:"venda"},
+    strong:["alarme","contradicao"], medium:["nota","penas","story"],
+    hintHow:"o alarme foi desligado com a senha da equipe", hintWhy:"veja onde a Pipoca foi parar",
+    wrong:{
+      livia:["A Lívia não tem chave nem a senha do alarme.","Alguém de dentro levou a Pipoca até ela."],
+      arnaldo:["A janela tava trancada e o alarme foi desligado com a senha da equipe.","E quem leva a semente preferida dela não odeia a arara."],
+      duda:["Eu tava na praia com a minha mãe! Olha as fotos 🏖️"]},
+    wrongHint:"Quem tem a chave e a senha do alarme? E quem queria a arara?",
+    ending:["O Caio confessou. Vendeu a Pipoca pra Lívia por 3 mil. 💔","Fui com a polícia na casa dela. A Pipoca já tá de volta na gaiola! 🦜","Ela entrou gritando o nome do Caio. Acho que ela sente falta dele… eu não. 😤"]
+  }
+},
+/* ------------------------------------------------------------------ 3 */
+{
+  id:"trofeu", emoji:"🏐", title:"O Troféu da Final", place:"Ginásio do Clube Ipê", diff:2,
+  tagline:"Na véspera da final de vôlei, o troféu sumiu da vitrine.",
+  contact:{k:"nanda",name:"Nanda · capitã do Ipê Vôlei"}, day:"Sábado, 09:05", minEv:6,
+  faces:{
+    nanda:{bg:"#f2b84b",skin:"#a8714c",hair:"#1d1410",style:"pony",lips:"#7d4434",shirt:"#f2b84b",num:"1",headband:"#fff"},
+    gabi:{bg:"#4a7bd0",skin:"#efc8a8",hair:"#5a3a22",style:"long",lips:"#b66a5a",shirt:"#f2b84b",num:"7"},
+    marcao:{bg:"#8a8f99",skin:"#7a4a2e",hair:"#333",style:"bald",lips:"#5e3424",mustache:true,shirt:"#3d5a80"},
+    julia:{bg:"#2f9be0",skin:"#f4d2b8",hair:"#111",style:"long",lips:"#d4206b",lipstick:true,shirt:"#1b4f8a",num:"10"}
+  },
+  scene:{title:"Vestiário do ginásio", art:`
+    ${room("#2f3646","#3a4150")}
+    <g stroke="#000" stroke-opacity=".15">${[...Array(9)].map((_,i)=>`<path d="M${i*40} 226v74"/>`).join("")}<path d="M0 262h360"/></g>
+    <rect x="18" y="66" width="92" height="160" fill="#4a3b2e"/><rect x="26" y="74" width="76" height="140" fill="#1a2433" stroke="#9fb4c7" stroke-width="1.5"/>
+    <path d="M26 120h76M26 166h76" stroke="#6b5a48" stroke-width="3"/>
+    <rect x="50" y="86" width="28" height="32" fill="none" stroke="#d4af37" stroke-dasharray="3 3" opacity=".8"/>
+    <path d="M36 164 h12 l-3 -12 h-6z" fill="#d4af37"/><circle cx="84" cy="152" r="7" fill="#c0c0c0"/><path d="M80 140 l4 6 l4 -6" stroke="#2f6df6" stroke-width="2" fill="none"/>
+    <path d="M40 210 h14 l-3 -14 h-8z" fill="#cd7f32"/><path d="M70 210 h14 l-3 -16 h-8z" fill="#d4af37"/>
+    <path d="M102 74 L116 80 L116 208 L102 214Z" fill="#9fb4c7" opacity=".25" stroke="#9fb4c7"/>
+    <rect x="126" y="80" width="54" height="42" rx="2" fill="#6b4b33"/>
+    ${["A","B","C","V"].map((l,i)=>`<circle cx="${135+i*12}" cy="88" r="1.8" fill="#ccc"/>${T(135+i*12,118,6,l,"#f4e2c0",800)}`).join("")}
+    <g fill="#e6b93c"><circle cx="135" cy="96" r="3"/><rect x="134" y="98" width="2" height="9"/><circle cx="147" cy="96" r="3"/><rect x="146" y="98" width="2" height="9"/><circle cx="157" cy="96" r="3"/><rect x="156" y="98" width="2" height="9"/><circle cx="162" cy="97" r="3" fill="#ff6b6b"/><rect x="161" y="99" width="2" height="9" fill="#ff6b6b"/></g>
+    <rect x="190" y="34" width="122" height="76" rx="3" fill="#e9eef2" stroke="#9aa1ae" stroke-width="3"/>
+    ${T(251,48,8,"FINAL · SÁB 19h")}
+    ${T(200,62,7,"1 Nanda","#2b2f3a",600,"start")}${T(200,74,7,"4 Bruna","#2b2f3a",600,"start")}${T(200,86,7,"7 Gabi","#2b2f3a",600,"start")}
+    ${T(256,62,7,"9 Lari","#2b2f3a",600,"start")}${T(256,74,7,"12 Duda","#2b2f3a",600,"start")}${T(256,86,7,"15 Mel","#2b2f3a",600,"start")}
+    <path d="M198 84 h36" stroke="#e0333f" stroke-width="2"/>
+    <rect x="316" y="90" width="40" height="136" fill="#5a4636" stroke="#3a2c21" stroke-width="3"/><circle cx="322" cy="160" r="3" fill="#c9b27a"/>
+    <rect x="140" y="196" width="210" height="10" rx="2" fill="#7a5638"/><rect x="150" y="206" width="6" height="20" fill="#5c412a"/><rect x="334" y="206" width="6" height="20" fill="#5c412a"/>
+    <rect x="300" y="174" width="12" height="22" rx="3" fill="#ff6fb5"/><rect x="302" y="169" width="8" height="6" rx="1" fill="#ffd1e8"/><g fill="#fff"><circle cx="304" cy="180" r=".9"/><circle cx="308" cy="186" r=".9"/><circle cx="305" cy="191" r=".9"/></g>
+    <path d="M192 232 Q182 200 210 190 Q238 182 250 202 Q262 228 246 234 Z" fill="#2a5fa8"/><g stroke="#1b3f73"><path d="M200 196 L240 232M220 188 L250 220M196 214 L226 190"/></g>
+    <circle cx="208" cy="194" r="9" fill="#f2d23a"/><path d="M200 192 q8 6 16 0" stroke="#2f6df6" stroke-width="2" fill="none"/>
+    <path d="M228 190 l16 -6 l4 10 l-14 6z" fill="#f4f4f4"/>${T(240,197,7,"7","#c0392b",800)}`,
+    hs:{
+      vitrine:{x:18,y:66,w:98,h:160,ev:"vitrine",txt:"<b>Vitrine:</b> aberta <b>com chave</b>, vidro intacto. O lugar do troféu está vazio."},
+      chaves:{x:124,y:78,w:58,h:46,ev:"chaves",txt:"<b>Quadro de chaves:</b> a chave da vitrine (etiqueta vermelha) está pendurada no <b>gancho errado</b>."},
+      escalacao:{x:188,y:32,w:126,h:80,ev:"escalacao",txt:"<b>Escalação da final:</b> o nome <b>7 Gabi</b> foi riscado."},
+      garrafa:{x:294,y:164,w:24,h:34,ev:"garrafa",txt:"<b>Banco:</b> uma garrafinha rosa com glitter. Não é do Ipê."},
+      saco:{x:182,y:180,w:78,h:58,ev:"toalha",txt:"<b>Saco de bolas:</b> lá dentro… <b>o troféu</b>, embrulhado numa toalha com o número <b>7</b> bordado!"},
+      porta:{x:316,y:88,w:40,h:70,ev:"porta",txt:"<b>Porta:</b> fechadura sem marcas. Ninguém forçou nada."}
+    }},
+  ev:{
+    vitrine:{t:"🏆 Vitrine aberta",c:"Aberta com a chave. Vidro intacto."},
+    chaves:{t:"🔑 Chave no gancho errado",c:"A chave da vitrine estava pendurada no gancho C."},
+    escalacao:{t:"📋 Escalação da final",c:"Nome “7 Gabi” riscado."},
+    garrafa:{t:"🩷 Garrafinha rosa",c:"Rosa com glitter, a marca do time rival, os Tubarões."},
+    toalha:{t:"🧺 Troféu escondido",c:"No saco de bolas, embrulhado numa toalha com o número 7."},
+    porta:{t:"🚪 Porta sem marcas",c:"Ninguém arrombou o vestiário."},
+    camera:{t:"🎥 Câmera do corredor",mono:true,c:"20:10  Júlia sai do vestiário\n21:30  Gabi entra\n21:41  Gabi sai\n22:00  Marcão tranca o vestiário"},
+    corte:{t:"✂️ Gabi cortada",c:"A técnica cortou a Gabi da final ontem. Ela não falou mais com ninguém."},
+    numero:{t:"#️⃣ Número 7",c:"A camisa 7 é da Gabi desde o juvenil."},
+    sala:{t:"🗝️ Sala do zelador",c:"Durante o treino, a sala das chaves fica aberta pro time pegar bola."},
+    contradicao:{t:"🗣️ Gabi confessou",c:"Admitiu que escondeu o troféu pra “sentirem falta dela”."}
+  },
+  nodes:{
+    start:{msgs:[{b:"Detetive, emergência! 🏐"},{b:"O troféu do campeonato sumiu da vitrine do vestiário."},{b:"A final é hoje às 19h e a federação vem buscar ele pra cerimônia. 😭"}],choices:[{l:"Respira. Me mostra o vestiário.",to:"fatos"}]},
+    fatos:{msgs:[{b:"Cheguei agora. Ninguém mexeu em nada:"},{photo:true}],unlock:["scene"]},
+    quem:{msgs:[{b:"Ontem à noite ficaram: a Gabi, levantadora do nosso time; o Marcão, zelador."},{b:"E a Júlia, capitã dos Tubarões, que veio ‘desejar boa sorte’. 🙄"},{b:"Te passei o contato das três… dos três. Enfim, de todo mundo."}],unlock:["inter"]},
+    camera:{msgs:[{b:"Tem uma no corredor. Pedi as imagens:"},{ev:"camera"}]},
+    corte:{msgs:[{b:"Foi a técnica que riscou. Cortou a Gabi da final ontem."},{ev:"corte"},{b:"Ela ficou arrasada. Dois anos de time…"}]},
+    numero:{msgs:[{b:"7? É da Gabi. Desde o juvenil."},{ev:"numero"},{b:"Não… não pode ser."}]},
+    garrafa:{msgs:[{b:"Rosa com glitter é marca registrada dos Tubarões."},{b:"A Júlia deve ter esquecido quando veio aqui."}]},
+    chaves:{msgs:[{b:"As chaves ficam na sala do Marcão."},{b:"Mas no treino a sala fica aberta, a gente pega bola lá."}]}
+  },
+  hub:[
+    {id:"quem",l:"Quem esteve no vestiário ontem?",req:["fatos"]},
+    {id:"camera",l:"Tem câmera por aqui?",req:["fatos"]},
+    {id:"corte",l:"Por que o nome da Gabi está riscado?",req:["e:escalacao"]},
+    {id:"numero",l:"Quem usa a camisa 7?",req:["e:toalha"]},
+    {id:"garrafa",l:"De quem é essa garrafinha rosa?",req:["e:garrafa"]},
+    {id:"chaves",l:"Quem tem acesso às chaves?",req:["e:chaves"]}
+  ],
+  sus:{
+    gabi:{n:"Gabi",d:"levantadora · camisa 7",
+      q:[{l:"O que você fez no vestiário ontem?",a:["Voltei 21h30 pra pegar meu tênis.","Fiquei uns 10 minutos, achei e fui embora."]},
+         {l:"Ficou chateada com o corte?",a:["Chateada? Dois anos de time e me cortam na final.","Mas isso é problema meu."]}],
+      react:{
+        toalha:{a:["…","Eu não roubei. Eu escondi.","Queria que pelo menos uma vez sentissem falta de mim.","Ia devolver antes da final, juro."],gain:"contradicao"},
+        numero:["Todo mundo sabe que eu sou a 7. E daí?"],
+        chaves:["Todo mundo sabe que a sala do Marcão fica aberta no treino."],
+        camera:["Eu falei que voltei. Não escondi nada."],
+        corte:["Não quero falar disso."]},
+      def:["Não sei o que isso tem a ver comigo."]},
+    marcao:{n:"Marcão",d:"zelador",
+      q:[{l:"A que horas o senhor trancou tudo?",a:["22h em ponto, como sempre."]},
+         {l:"Onde ficam as chaves da vitrine?",a:["Na minha sala, no quadro.","No treino eu deixo a sala aberta, o pessoal pega bola lá."],ev:"sala",pre:"Pode anotar aí."}],
+      react:{
+        toalha:["Toalha 7? É da Gabi, eu que lavo os uniformes."],
+        chaves:["Gancho errado? Vinte anos aqui e nunca troquei gancho. Não fui eu."],
+        camera:["Tá vendo? 22h, tranquei, fui pra casa."]},
+      def:["Isso aí eu não sei, não."]},
+    julia:{n:"Júlia",d:"capitã dos Tubarões",
+      q:[{l:"O que você fez no vestiário?",a:["Fui desejar boa sorte. Fair play, né? 😏","Saí 20h10."]},
+         {l:"Vocês querem ganhar a final?",a:["Óbvio. Mas na quadra, querida."]}],
+      react:{
+        garrafa:["É minha, esqueci. Que crime grave. 🙄"],
+        camera:["Viu? 20h10 eu já tava fora."],
+        toalha:["Toalha com 7? Nosso time nem tem camisa 7."]},
+      def:["Não perde meu tempo."]}
+  },
+  acc:{
+    who:[["gabi","Gabi","levantadora"],["marcao","Marcão","zelador"],["julia","Júlia","rival"],["nanda","Nanda","capitã"]],
+    how:[["chave","Pegou a chave da vitrine na sala do zelador, aberta no treino"],["forcou","Forçou a vitrine"],["copia","Fez uma cópia da chave"],["rival","Entrou junto com o time rival"]],
+    why:[["vinganca","Mágoa por ter sido cortada da final"],["rival","Desestabilizar o Ipê antes da final"],["vender","Vender o troféu"],["brincadeira","Pegadinha de vestiário"]],
+    answer:{who:"gabi",how:"chave",why:"vinganca"},
+    strong:["toalha","contradicao"], medium:["camera","chaves","escalacao","numero"],
+    hintHow:"a vitrine foi aberta com a chave, que voltou pro gancho errado", hintWhy:"olhe a escalação da final",
+    wrong:{
+      julia:["A câmera mostra a Júlia saindo às 20h10.","E ela nem sabe onde ficam as chaves da vitrine."],
+      marcao:["O Marcão cuida dessa vitrine há 20 anos.","Se fosse ele, a chave voltava pro gancho certo."],
+      nanda:["Eu?? Sem troféu eu sou a primeira a ser cobrada! 😭"]},
+    wrongHint:"Quem voltou ao vestiário depois que a Júlia saiu? E de quem é a toalha?",
+    ending:["A Gabi me ligou chorando e devolveu o troféu.","A gente conversou. A técnica deixou ela entrar no último set. 🏐","GANHAMOS!! E o troféu voltou pra vitrine. Obrigada, detetive! 🏆"]
+  }
+},
+/* ------------------------------------------------------------------ 4 */
+{
+  id:"bolo", emoji:"🌽", title:"Sal no Arraiá", place:"Festa junina da Escola Estadual", diff:2,
+  tagline:"O bolo campeão do concurso foi feito com sal no lugar de açúcar.",
+  contact:{k:"neide",name:"Dona Neide · organização do Arraiá"}, day:"Sábado, 18:20", minEv:6,
+  faces:{
+    neide:{bg:"#e0533f",skin:"#d9a27a",hair:"#7a4a2a",style:"bun",lips:"#b5655a",glasses:true,shirt:"#f2b84b"},
+    jairo:{bg:"#f2b84b",skin:"#c98b5e",hair:"#555",style:"short",lips:"#8a4e3b",mustache:true,cap:"#2b2f3a",shirt:"#e6b93c"},
+    kelly:{bg:"#b07acb",skin:"#e8b890",hair:"#2a1a12",style:"curly",lips:"#d4206b",lipstick:true,shirt:"#e0533f",earrings:"#f2b84b"},
+    pedro:{bg:"#3ecf8e",skin:"#f0c9a5",hair:"#c0662b",style:"short",lips:"#b66a5a",shirt:"#4a7bd0"}
+  },
+  scene:{title:"Cozinha da escola", art:`
+    ${room("#4a3326","#2e2621")}
+    <g fill="#000" opacity=".12">${[...Array(9)].map((_,i)=>`<rect x="${i*40+(i%2?0:20)}" y="226" width="20" height="74"/>`).join("")}</g>
+    <path d="M0 14 Q90 30 180 14 Q270 30 360 14" stroke="#c9b27a" fill="none"/>
+    ${[...Array(18)].map((_,i)=>{const x=i*20+10,y=14+8*Math.sin(((x%180)/180)*Math.PI);const c=["#e0533f","#f2b84b","#3ecf8e","#2f9be0","#b07acb"][i%5];return `<path d="M${x-7} ${y} L${x+7} ${y} L${x} ${y+14}Z" fill="${c}"/>`}).join("")}
+    <rect x="20" y="44" width="80" height="62" fill="#1f3a5c" stroke="#7a5638" stroke-width="4"/>
+    <path d="M20 44 L4 52 L4 112 L20 106Z" fill="#7a5638"/>
+    <rect x="30" y="78" width="60" height="13" fill="#2b2f3a"/>${T(60,88,8,"ARRAIÁ","#e6b93c",800)}
+    <rect x="140" y="40" width="104" height="60" fill="#f3e6c4" stroke="#7a5638" stroke-width="2"/>
+    ${T(192,56,7.5,"CONCURSO DE BOLOS")}${T(192,72,7,"2025: 1º Dona Zezé","#2b2f3a",600)}${T(192,84,7,"2º Kelly","#2b2f3a",600)}${T(192,95,6,"2024: 1º Zezé · 2º Kelly","#6b5a48",500)}
+    <circle cx="290" cy="56" r="3" fill="#999"/><path d="M276 66 h28 l5 66 h-38z" fill="#f4f0e6"/><path d="M282 66 q8 -12 16 0" stroke="#f4f0e6" stroke-width="3" fill="none"/><rect x="282" y="96" width="16" height="12" rx="1" fill="#e9dfcc"/>
+    <rect x="70" y="160" width="232" height="12" rx="2" fill="#8a6a4a"/><rect x="76" y="172" width="220" height="54" fill="#6b4f36"/><path d="M186 176v46" stroke="#4a3326" stroke-width="2"/>
+    <rect x="92" y="122" width="34" height="38" rx="5" fill="#dfe8ee" opacity=".9"/><rect x="90" y="116" width="38" height="8" rx="2" fill="#c0392b"/><rect x="95" y="128" width="28" height="30" fill="#fff"/>
+    <rect x="96" y="136" width="26" height="13" fill="#1d1d1d"/>${T(109,145,6,"AÇÚCAR","#e6b93c",800)}
+    <ellipse cx="181" cy="160" rx="34" ry="5" fill="#ddd"/>
+    <rect x="156" y="132" width="50" height="26" rx="4" fill="#e3b04b"/><ellipse cx="181" cy="132" rx="25" ry="6" fill="#f0c56a"/><path d="M192 128 l12 4 l0 24 l-12 -2z" fill="#4a3326"/>
+    <rect x="236" y="153" width="30" height="4" rx="2" fill="#7a5638" transform="rotate(-8 251 155)"/><path d="M264 149 l10 2 l-2 6 l-8 -3z" fill="#e6b93c"/><circle cx="279" cy="158" r="2" fill="#e6b93c"/>
+    ${bin(318,196)}<rect x="322" y="184" width="22" height="16" fill="#e9eef5"/>${T(333,195,6,"SAL","#2f6df6",800)}`,
+    hs:{
+      janela:{x:2,y:40,w:102,h:76,ev:"janela",txt:"<b>Janela:</b> escancarada. Dá direto no pátio, onde estavam <b>pintando as faixas da festa</b>."},
+      cartaz:{x:138,y:38,w:108,h:64,ev:"cartaz",txt:"<b>Cartaz:</b> a Dona Zezé ganhou os dois últimos anos. A Kelly ficou em 2º nas duas vezes."},
+      avental:{x:268,y:50,w:44,h:84,ev:"avental",txt:"<b>Avental:</b> do Pedro, sobrinho da Zezé. Limpinho, nem uma mancha de farinha."},
+      pote:{x:88,y:110,w:42,h:52,ev:"pote",txt:"<b>Pote de AÇÚCAR:</b> cheio de <b>sal</b>! E a etiqueta é nova, escrita com <b>tinta dourada</b>."},
+      bolo:{x:150,y:120,w:60,h:44,ev:"bolo",txt:"<b>Bolo da Zezé:</b> lindo por fora. Os jurados deram uma mordida e… salgado."},
+      pincel:{x:230,y:140,w:52,h:24,ev:"pincel",txt:"<b>Bancada:</b> um pincel de letreiro com <b>tinta dourada</b> ainda fresca."},
+      lixeira:{x:312,y:178,w:40,h:50,ev:"sal",txt:"<b>Lixeira:</b> um pacote de sal de 1 kg, vazio. Comprado hoje."}
+    }},
+  ev:{
+    pote:{t:"🧂 Pote trocado",c:"Pote de AÇÚCAR cheio de sal. Etiqueta nova, em tinta dourada."},
+    bolo:{t:"🎂 Bolo sabotado",c:"Feito com sal no lugar de açúcar."},
+    pincel:{t:"🖌️ Pincel dourado",c:"Pincel de letreiro com tinta dourada fresca, esquecido na bancada."},
+    sal:{t:"🗑️ Pacote de sal",c:"Pacote de 1 kg vazio, comprado hoje."},
+    janela:{t:"🪟 Janela aberta",c:"Dá direto pro pátio onde pintavam as faixas."},
+    cartaz:{t:"📜 Ranking do concurso",c:"2024 e 2025: 1º Dona Zezé, 2º Kelly."},
+    avental:{t:"👕 Avental do Pedro",c:"Limpo. Sem farinha, sem açúcar, sem tinta."},
+    horario:{t:"⏰ Bancada sozinha",c:"Os ingredientes ficaram sozinhos das 15h às 15h40."},
+    gelo:{t:"🧊 Recibo do gelo",c:"Pedro: saiu 15:05, voltou 15:45 com o gelo."},
+    quadrilha:{t:"💃 Vídeo da quadrilha",c:"Kelly dançando no palco das 14:50 às 15:50."},
+    faixas:{t:"🎨 Faixas da festa",c:"Seu Jairo pintou todas as faixas com tinta dourada, hoje à tarde, no pátio."},
+    contradicao:{t:"🗣️ Jairo confessou",c:"Pulou a janela, trocou o açúcar pelo sal e fez a etiqueta nova."}
+  },
+  nodes:{
+    start:{msgs:[{b:"Detetive, que vergonha! 😱"},{b:"Sabotaram o bolo da Dona Zezé no concurso do Arraiá."},{b:"Os jurados provaram e… SAL. Puro sal."}],choices:[{l:"Onde o bolo foi feito?",to:"fatos"}]},
+    fatos:{msgs:[{b:"Aqui na cozinha da escola. Os ingredientes ficaram na bancada."},{b:"Tirei foto de tudo:"},{photo:true}],unlock:["scene"]},
+    quem:{msgs:[{b:"O Pedro, sobrinho da Zezé, ajudou ela a fazer o bolo."},{b:"A Kelly, que concorre todo ano, também fez o bolo dela aqui."},{b:"E o Seu Jairo, marido da Kelly, passou a tarde no pátio."},{b:"Te passei o contato deles."}],unlock:["inter"]},
+    horario:{msgs:[{b:"Das 15h às 15h40. A Zezé foi se arrumar e o Pedro foi buscar gelo."},{ev:"horario"},{ev:"gelo"}]},
+    kelly:{msgs:[{b:"No palco! Ela puxou a quadrilha. Tenho o vídeo:"},{ev:"quadrilha"}]},
+    tinta:{msgs:[{b:"Tinta dourada? O Seu Jairo pintou todas as faixas da festa hoje!"},{ev:"faixas"},{b:"Ele é pintor de letreiro há 30 anos."}]},
+    cartaz:{msgs:[{b:"Todo ano! E todo ano o Jairo fica uma fera, diz que é marmelada. 🙄"}]}
+  },
+  hub:[
+    {id:"quem",l:"Quem entrou na cozinha hoje?",req:["fatos"]},
+    {id:"horario",l:"Quando a bancada ficou sozinha?",req:["quem"]},
+    {id:"kelly",l:"Onde a Kelly estava às 15h?",req:["quem"]},
+    {id:"tinta",l:"Quem estava usando tinta dourada?",req:["e:pincel"]},
+    {id:"cartaz",l:"A Kelly já perdeu pra Zezé antes?",req:["e:cartaz"]}
+  ],
+  sus:{
+    jairo:{n:"Seu Jairo",d:"marido da Kelly · pintor",
+      q:[{l:"Onde o senhor estava às 15h?",a:["Pintando a faixa da entrada, no pátio.","Nem entrei na cozinha."]},
+         {l:"O senhor acha justo a Zezé ganhar todo ano?",a:["Justo? É marmelada! A Kelly treina o ano inteiro."]}],
+      react:{
+        pote:{a:["…","Tá bom. A letra é minha.","Pulei a janela, troquei o açúcar pelo sal e fiz a etiqueta igualzinha.","A Kelly chora todo ano. Eu só queria ver ela ganhar uma vez."],gain:"contradicao"},
+        pincel:["Pincel é tudo igual, meu filho."],
+        janela:["Janela aberta não prova nada."],
+        faixas:["Pintei, sim. Tô sujo de dourado até agora, olha."]},
+      def:["Hã? Não sei de nada."]},
+    kelly:{n:"Kelly",d:"concorrente",
+      q:[{l:"Você sabotou o bolo da Zezé?",a:["Eu?? Eu tava puxando a quadrilha, 300 pessoas me viram!"]},
+         {l:"E o seu marido?",a:["O Jairo tava pintando as faixas no pátio… por quê?"]}],
+      react:{
+        faixas:["Tinta dourada?… Jairo… você não fez isso. 😨"],
+        cartaz:["Segundo lugar duas vezes. Dói, mas eu sei perder."],
+        quadrilha:["Viu? Tô até de vestido de chita no vídeo."]},
+      def:["Não tenho nada a ver com isso."]},
+    pedro:{n:"Pedro",d:"sobrinho da Zezé",
+      q:[{l:"Onde você estava às 15h?",a:["Fui buscar gelo, a tia pediu.","Voltei 15h45, tá no recibo."]},
+         {l:"Notou algo diferente no açúcar?",a:["A etiqueta tava bonita… achei que a tia tinha trocado o pote."]}],
+      react:{
+        pote:["Essa letra não é da tia. Ela escreve tudo torto, essa tá bonita demais."],
+        avental:["Meu avental, eu só ajudei a untar a forma."],
+        gelo:["Taí o recibo. 15h05 eu já tava no mercado."]},
+      def:["Não sei, eu só ajudei a tia."]}
+  },
+  acc:{
+    who:[["jairo","Seu Jairo","pintor"],["kelly","Kelly","concorrente"],["pedro","Pedro","sobrinho"],["neide","Dona Neide","organizadora"]],
+    how:[["janela","Pulou a janela e trocou o açúcar por sal, com etiqueta nova"],["bolo","Jogou sal no bolo depois de assado"],["entrega","Trocou o bolo na hora da entrega"],["ajudante","Colocou sal enquanto ajudava a fazer o bolo"]],
+    why:[["esposa","Queria que a esposa ganhasse"],["aposta","Tinha apostado dinheiro no resultado"],["receita","Briga de família pela receita"],["vinganca","Vingança contra a organização"]],
+    answer:{who:"jairo",how:"janela",why:"esposa"},
+    strong:["faixas","contradicao"], medium:["pote","pincel","janela"],
+    hintHow:"a etiqueta do pote é nova e a janela dá pro pátio", hintWhy:"veja o cartaz do concurso",
+    wrong:{
+      kelly:["A Kelly tava no palco das 14h50 às 15h50. Tem vídeo!"],
+      pedro:["O Pedro saiu 15h05 pra buscar gelo e voltou 15h45. E ele adora a tia."],
+      neide:["Eu?? Eu sou a organizadora! Isso é um escândalo pra MIM! 😤"]},
+    wrongHint:"Quem usava tinta dourada? E quem estava livre entre 15h e 15h40?",
+    ending:["O Jairo confessou na frente de todo mundo. 😳","A Kelly ficou tão brava que tirou o bolo dela do concurso.","E a Zezé? Fez outro bolo em uma hora e ganhou de novo. 🏆🌽"]
+  }
+},
+/* ------------------------------------------------------------------ 5 */
+{
+  id:"deploy", emoji:"💻", title:"Queda em Produção", place:"Startup Foguete Tech", diff:3,
+  tagline:"Alguém apagou a tabela de clientes numa sexta à noite.",
+  contact:{k:"leo",name:"Léo · CTO da Foguete Tech"}, day:"Sábado, 10:30", minEv:6,
+  faces:{
+    leo:{bg:"#4a7bd0",skin:"#c98b5e",hair:"#1b1b1b",style:"short",lips:"#8a4e3b",beard:true,glasses:true,shirt:"#2b2f3a"},
+    vini:{bg:"#3ecf8e",skin:"#f0c9a5",hair:"#e8d27a",style:"short",lips:"#b66a5a",shirt:"#e0533f",headband:"#2b2f3a"},
+    paula:{bg:"#b07acb",skin:"#8a5a3b",hair:"#1d1410",style:"curly",lips:"#7d3a4a",glasses:true,shirt:"#6b4fd8",earrings:"#ddd"},
+    sergio:{bg:"#f2b84b",skin:"#e0b08a",hair:"#7a4a2a",style:"buzz",lips:"#a86b5a",shirt:"#2f9be0",mustache:true}
+  },
+  scene:{title:"Escritório da startup", art:`
+    ${room("#232833","#2b2f38")}
+    <rect x="18" y="36" width="98" height="72" rx="3" fill="#e9eef2" stroke="#9aa1ae" stroke-width="3"/>
+    ${T(67,50,8,"PLANTÃO")}${T(28,66,7,"SEX · Sérgio","#2b2f3a",600,"start")}${T(28,80,7,"SÁB · Vini","#2b2f3a",600,"start")}${T(28,94,7,"DOM · Paula","#2b2f3a",600,"start")}
+    <path d="M26 92 h62" stroke="#e0333f" stroke-width="2"/>
+    <rect x="134" y="30" width="114" height="78" rx="4" fill="#111"/><rect x="140" y="36" width="102" height="66" fill="#2a0d12"/>
+    ${T(191,58,10,"PROD DOWN","#ff4d5e",800)}${T(191,72,6,"clientes: table not found","#ff9aa4",500)}
+    <g fill="#ff4d5e" opacity=".7"><rect x="150" y="80" width="8" height="16"/><rect x="162" y="86" width="8" height="10"/><rect x="174" y="92" width="8" height="4"/><rect x="186" y="95" width="8" height="1"/></g>
+    <rect x="186" y="108" width="10" height="16" fill="#333"/>
+    <g transform="rotate(8 263 39)"><rect x="252" y="28" width="22" height="22" fill="#ffe066"/><path d="M255 36h16M255 41h12M255 46h14" stroke="#555" stroke-width="1"/></g>
+    <rect x="18" y="168" width="156" height="10" rx="2" fill="#5c6272"/><rect x="26" y="178" width="6" height="48" fill="#3a3f4a"/><rect x="160" y="178" width="6" height="48" fill="#3a3f4a"/>
+    <path d="M52 166 L60 136 L104 136 L100 166Z" fill="#3a3f4a"/><circle cx="80" cy="150" r="5" fill="#f2b84b"/><path d="M80 146 l2 4 h-4z" fill="#e0533f"/>
+    <rect x="46" y="164" width="62" height="5" rx="1" fill="#5a606e"/><rect x="88" y="165" width="16" height="3" fill="#fff"/>
+    <rect x="116" y="156" width="46" height="11" fill="#c99a5b"/><rect x="122" y="152" width="14" height="6" fill="#fff" transform="rotate(-6 129 155)"/>
+    <rect x="208" y="168" width="140" height="10" rx="2" fill="#5c6272"/><rect x="216" y="178" width="6" height="48" fill="#3a3f4a"/><rect x="334" y="178" width="6" height="48" fill="#3a3f4a"/>
+    <rect x="226" y="152" width="12" height="16" rx="2" fill="#f4f0e6"/><path d="M300 168 q-4 -24 6 -30 q10 6 6 30z" fill="#3ecf8e"/><rect x="298" y="156" width="16" height="12" fill="#c0662b"/>
+    ${bin(178,196)}<rect x="184" y="186" width="16" height="12" fill="#fff" transform="rotate(10 192 192)"/>`,
+    hs:{
+      plantao:{x:16,y:34,w:102,h:76,ev:"plantao",txt:"<b>Quadro de plantão:</b> sexta à noite, quem estava de plantão era o <b>Sérgio</b>."},
+      monitor:{x:132,y:28,w:116,h:84,ev:"log",txt:"<b>Painel de erros:</b> o log mostra o comando que apagou a tabela, o usuário e o IP."},
+      postit:{x:248,y:22,w:32,h:32,ev:"postit",txt:"<b>Post-it:</b> “deploy-bot / Foguete@2024”. A senha do robô de deploy… colada no monitor. 🤦"},
+      notebook:{x:44,y:132,w:68,h:40,ev:"patrimonio",txt:"<b>Notebook:</b> etiqueta de patrimônio <b>NB-042</b>. Mesa do Vini."},
+      pizza:{x:112,y:146,w:54,h:24,ev:"pizza",txt:"<b>Caixa de pizza:</b> nota de entrega: <b>sexta 22:30, mesa do Vini</b>."},
+      lixeira:{x:174,y:184,w:34,h:44,ev:"script",txt:"<b>Lixeira:</b> folha impressa com o script <b>limpar_teste.sql</b>. Anotação: “rodar SÓ no ambiente de teste!!”"}
+    }},
+  ev:{
+    log:{t:"🖥️ Log do banco",mono:true,c:"SEX 23:14  DROP TABLE clientes\nusuário: deploy-bot\nIP: 10.0.0.42"},
+    postit:{t:"🟨 Post-it da senha",c:"Senha do deploy-bot colada no monitor, à vista de todos."},
+    patrimonio:{t:"🏷️ Notebook NB-042",c:"Patrimônio NB-042, na mesa do Vini."},
+    pizza:{t:"🍕 Pizza da madrugada",c:"Entregue sexta, 22:30, na mesa do Vini."},
+    script:{t:"📄 Script de limpeza",c:"limpar_teste.sql: apaga a tabela clientes.\n“Rodar SÓ no ambiente de teste!!”"},
+    plantao:{t:"📋 Plantão",c:"Sexta à noite: Sérgio (suporte)."},
+    inventario:{t:"📑 Inventário de rede",mono:true,c:"10.0.0.42 → NB-042 (Vinícius)"},
+    rh:{t:"🚫 Acesso revogado",c:"Todos os acessos da Paula foram revogados sexta, 18:00."},
+    call:{t:"🎧 Call gravada",c:"Sérgio em call com cliente das 23:00 às 23:40. Gravação completa."},
+    luz:{t:"💡 Luz na mesa do Vini",c:"Sérgio viu a luz acesa na mesa do Vini às 22:50."},
+    show:{t:"🎤 Story da Paula",c:"Paula num show do outro lado da cidade, 22:30 às 0:30."},
+    contradicao:{t:"🗣️ Vini confessou",c:"Rodou o script achando que estava no ambiente de teste e fugiu em pânico."}
+  },
+  nodes:{
+    start:{msgs:[{b:"Cara. Derrubaram o banco de produção ontem à noite. 😵"},{b:"A tabela de clientes sumiu. O backup salvou, mas o chefe quer saber quem foi até segunda."}],choices:[{l:"Me mostra o escritório e os logs.",to:"fatos"}]},
+    fatos:{msgs:[{b:"Ninguém mexeu em nada desde ontem:"},{photo:true},{b:"Qualquer pessoa com a senha do deploy-bot consegue rodar comando no banco."}],unlock:["scene"]},
+    quem:{msgs:[{b:"Sexta à noite: o Vini, dev júnior, e o Sérgio, de plantão no suporte."},{b:"E a Paula, dev sênior, pediu demissão sexta e saiu batendo a porta."},{b:"Te passei o contato dos três."}],unlock:["inter"]},
+    paula:{msgs:[{b:"O RH revogou tudo dela às 18h. Confirmei agora:"},{ev:"rh"}]},
+    ip:{msgs:[{b:"Deixa eu ver o inventário de rede…"},{ev:"inventario"},{b:"NB-042… é o notebook do Vini. 😶"}]},
+    senha:{msgs:[{b:"Pelo jeito… qualquer um que passa na frente do monitor. 🤦"},{b:"Eu pedi mil vezes pra tirarem esse post-it."}]},
+    sergio:{msgs:[{b:"Tava. Ele atendeu uma call enorme de um cliente."},{b:"Pede pra ele a gravação."}]}
+  },
+  hub:[
+    {id:"quem",l:"Quem tinha acesso sexta à noite?",req:["fatos"]},
+    {id:"paula",l:"A Paula ainda tinha acesso ao sistema?",req:["quem"]},
+    {id:"ip",l:"De quem é o IP 10.0.0.42?",req:["e:log"]},
+    {id:"senha",l:"Quem sabe a senha do deploy-bot?",req:["e:postit"]},
+    {id:"sergio",l:"O Sérgio estava trabalhando mesmo?",req:["e:plantao"]}
+  ],
+  sus:{
+    vini:{n:"Vini",d:"dev júnior",
+      q:[{l:"A que horas você saiu sexta?",a:["Umas 22h, eu acho.","Saí cedo, tava cansado."]},
+         {l:"Você usa o deploy-bot?",a:["Às vezes, pra subir coisa no ambiente de teste."]}],
+      react:{
+        pizza:["Tá… saí mais tarde. Fiquei terminando uma tarefa."],
+        inventario:{a:["…","Fui eu. Mas foi sem querer!","Rodei o script de limpeza achando que tava no teste.","Quando vi o erro, entrei em pânico e fui embora. Desculpa, Léo. 😞"],gain:"contradicao"},
+        script:["Esse script é de limpeza do teste. Normal."],
+        luz:["Esqueci a luz acesa, só isso."],
+        log:["deploy-bot todo mundo usa, né."]},
+      def:["Não sei, não fui eu."]},
+    paula:{n:"Paula",d:"ex-dev sênior",
+      q:[{l:"Você ainda tinha acesso ao sistema?",a:["Me tiraram tudo às 18h. Nem consegui baixar meus arquivos."]},
+         {l:"Por que saiu da empresa?",a:["Cansei de ver senha em post-it. 🙃"]},
+         {l:"Onde você estava sexta às 23h?",a:["Num show. Tá no meu story."],ev:"show",pre:"Olha aí:"}],
+      react:{
+        log:["IP interno? Eu tava do outro lado da cidade, querido."],
+        postit:["Viu? Eu avisei."],
+        rh:["Pois é. Às 18h eu virei visita."]},
+      def:["Não trabalho mais aí. Boa sorte."]},
+    sergio:{n:"Sérgio",d:"suporte · plantão",
+      q:[{l:"O que você fez no plantão?",a:["Atendi uma call enorme, das 23h às 23h40."],ev:"call",pre:"A gravação tá aqui:"},
+         {l:"Viu alguém no escritório?",a:["Vi luz acesa na mesa do Vini quando cheguei, umas 22h50."],ev:"luz"}],
+      react:{
+        postit:["Todo mundo vê esse post-it. Já pedi pra tirar."],
+        log:["23:14 eu tava no meio da call. Tá gravado."],
+        pizza:["Senti cheiro de pizza mesmo quando cheguei."]},
+      def:["Não sei te dizer."]}
+  },
+  acc:{
+    who:[["vini","Vini","dev júnior"],["paula","Paula","ex-dev sênior"],["sergio","Sérgio","suporte"],["leo","Léo","CTO"]],
+    how:[["postit","Usou a senha do deploy-bot que estava no post-it"],["token","Usou um acesso antigo que não foi bloqueado"],["hacker","Invasão externa de um hacker"],["suporte","Pelo painel administrativo do suporte"]],
+    why:[["acidente","Foi sem querer: rodou o script de teste em produção"],["vinganca","Vingança por não ser promovido"],["sabotagem","Sabotagem a mando de concorrente"],["demissao","Revolta por sair da empresa"]],
+    answer:{who:"vini",how:"postit",why:"acidente"},
+    strong:["inventario","contradicao"], medium:["pizza","log","luz","script"],
+    hintHow:"o comando foi do deploy-bot, e a senha dele estava à vista", hintWhy:"leia a anotação no script da lixeira",
+    wrong:{
+      paula:["O acesso da Paula foi revogado às 18h.","E o comando veio de dentro da rede, do IP 10.0.0.42."],
+      sergio:["O Sérgio tava numa call gravada das 23h às 23h40. O DROP foi 23:14."],
+      leo:["Eu?? Passei a madrugada restaurando backup, mano. 😩"]},
+    wrongHint:"De qual máquina saiu o comando? Quem estava no escritório?",
+    ending:["O Vini contou tudo pro chefe. Ninguém vai ser demitido.","Mas a gente aprendeu: senha em post-it, NUNCA MAIS. 🔥","E agora o terminal de produção fica vermelho. 😂"]
+  }
+},
+/* ------------------------------------------------------------------ 6 */
+{
+  id:"anel", emoji:"💍", title:"O Anel da Cachoeira", place:"Pousada Recanto das Águas", diff:1,
+  tagline:"O anel da avó sumiu do chalé num fim de semana na cachoeira.",
+  contact:{k:"re",name:"Rê · chalé 7"}, day:"Sábado, 16:15", minEv:6,
+  faces:{
+    re:{bg:"#3ecf8e",skin:"#c98b5e",hair:"#1d1410",style:"long",lips:"#9c5a48",shirt:"#f4f0e6",earrings:"#f2b84b"},
+    diego:{bg:"#4a7bd0",skin:"#e0b08a",hair:"#2a1a12",style:"short",lips:"#a86b5a",beard:true,shirt:"#3d7a4a"},
+    tania:{bg:"#b07acb",skin:"#8a5a3b",hair:"#2b2b2b",style:"bun",lips:"#6b3f2c",shirt:"#9aa1ae"},
+    fabinho:{bg:"#f2b84b",skin:"#a8714c",hair:"#111",style:"buzz",lips:"#6b3f2c",cap:"#3d7a4a",shirt:"#e0533f"}
+  },
+  scene:{title:"Chalé 7", art:`
+    ${room("#4a3626","#33251a")}
+    <g stroke="#000" stroke-opacity=".18">${[...Array(13)].map((_,i)=>`<path d="M0 ${16+i*16}H360"/>`).join("")}</g>
+    <rect x="250" y="52" width="94" height="174" fill="#6b4b33"/><rect x="258" y="60" width="78" height="160" fill="#2e5a3e"/>
+    <circle cx="272" cy="96" r="16" fill="#24492f"/><circle cx="326" cy="90" r="18" fill="#24492f"/><circle cx="318" cy="160" r="20" fill="#24492f"/>
+    <path d="M298 60 q8 70 0 160" stroke="#cfe8f5" stroke-width="12" opacity=".85" fill="none"/><path d="M258 210h78" stroke="#9fd0e8" stroke-width="6" opacity=".6"/>
+    <path d="M297 60v160" stroke="#6b4b33" stroke-width="4"/><rect x="290" y="134" width="14" height="8" rx="2" fill="#c9b27a"/>
+    <rect x="104" y="46" width="66" height="44" fill="#d9c7a3" stroke="#6b4b33" stroke-width="4"/><path d="M108 86 l18 -20 l14 12 l10 -8 l16 16z" fill="#5e8a63"/>
+    <rect x="180" y="68" width="40" height="30" fill="#fff3c4" transform="rotate(3 200 83)"/><circle cx="200" cy="70" r="2" fill="#e0533f"/>
+    <path d="M186 80h28M186 86h22M186 92h26" stroke="#7a6a50" stroke-width="1"/>
+    <circle cx="234" cy="112" r="2.5" fill="#c9b27a"/><path d="M234 114 v8" stroke="#c9b27a" stroke-width="1.5"/><rect x="226" y="124" width="16" height="9" rx="1" fill="#f4e2c0"/>${T(234,131,5,"CHAVE 2","#6b4b33",800)}
+    <rect x="70" y="138" width="152" height="36" rx="4" fill="#6b4b33"/><rect x="72" y="166" width="148" height="56" rx="3" fill="#e9e3d2"/><rect x="72" y="190" width="148" height="34" fill="#c0662b"/>
+    <rect x="84" y="150" width="44" height="18" rx="6" fill="#fff"/><rect x="140" y="150" width="44" height="18" rx="6" fill="#fff"/>
+    <path d="M180 178 h38 v22 h-34z" fill="#2f9be0"/><path d="M188 200 v6M200 200 v8M212 200 v5" stroke="#9fd0e8" stroke-width="2"/>
+    <rect x="18" y="160" width="46" height="66" fill="#6b4b33"/><rect x="22" y="168" width="38" height="20" fill="#5c412a"/>
+    <rect x="24" y="148" width="34" height="12" fill="#8e2d4a"/><path d="M24 148 L28 132 L62 132 L58 148Z" fill="#a83a5c"/>
+    <circle cx="32" cy="153" r="2" fill="#f2d23a"/><circle cx="38" cy="153" r="2" fill="#f2d23a"/><path d="M42 151 q4 4 8 0" stroke="#eee" fill="none"/><circle cx="53" cy="153" r="2.4" fill="#2b0f1a"/>
+    <rect x="100" y="238" width="68" height="44" rx="5" fill="#8a5a3b"/><path d="M100 254h68" stroke="#6b4426" stroke-width="3"/><rect x="124" y="232" width="20" height="8" rx="2" fill="none" stroke="#6b4426" stroke-width="3"/>
+    <rect x="150" y="226" width="18" height="16" fill="#fff" transform="rotate(14 159 234)"/>`,
+    hs:{
+      caixinha:{x:20,y:128,w:46,h:36,ev:"caixinha",txt:"<b>Porta-joias:</b> brincos e colar no lugar. Só o espaço do <b>anel da avó</b> está vazio."},
+      bilhete:{x:176,y:64,w:48,h:40,ev:"bilhete",txt:"<b>Bilhete da camareira:</b> “Arrumação concluída 10:20 — Tânia”."},
+      chave:{x:220,y:104,w:28,h:34,ev:"chave",txt:"<b>Gancho da chave 2:</b> vazio. A segunda chave do chalé fica com o Diego."},
+      toalha:{x:176,y:172,w:46,h:40,ev:"toalha",txt:"<b>Na cama:</b> uma toalha de trilha <b>molhada</b>. Alguém voltou da cachoeira mais cedo?"},
+      varanda:{x:248,y:50,w:98,h:178,ev:"varanda",txt:"<b>Porta da varanda:</b> trancada por dentro. Ninguém entrou por aqui."},
+      mala:{x:96,y:224,w:76,h:62,ev:"reserva",txt:"<b>Mala do Diego:</b> saindo dela, um voucher: “Piquenique na Cachoeira · amanhã 7h · <b>pacote Pedido Especial 💍</b>”."}
+    }},
+  ev:{
+    caixinha:{t:"💎 Porta-joias",c:"Só o anel da avó sumiu. Nada mais foi tocado."},
+    bilhete:{t:"🧹 Bilhete da camareira",c:"Arrumação: 10:00–10:20. Tânia."},
+    chave:{t:"🔑 Segunda chave",c:"A chave 2 do chalé está com o Diego."},
+    toalha:{t:"💧 Toalha molhada",c:"Toalha de trilha molhada, jogada na cama."},
+    varanda:{t:"🚪 Varanda trancada",c:"Trancada por dentro."},
+    reserva:{t:"🎟️ Voucher secreto",c:"Piquenique na Cachoeira · amanhã 7h · pacote “Pedido Especial 💍”."},
+    visto:{t:"🕑 Anel às 14h",c:"A Rê viu o anel às 14h, antes de ir pro spa (14h30–16h)."},
+    trilha:{t:"🥾 Álibi do Diego",c:"Diego disse que passou a trilha toda com o grupo, 14h30–17h."},
+    voltou:{t:"🗣️ Diego voltou",c:"Fabinho: o Diego voltou pro chalé às 15h “pra buscar protetor” e só reapareceu 15h20."},
+    mapa:{t:"🗺️ Mapa na porta",c:"Fabinho deixou o mapa da trilha na porta, às 9h. Não entrou."},
+    contradicao:{t:"🗣️ Diego confessou",c:"Pegou o anel para pedir a Rê em casamento na cachoeira."}
+  },
+  nodes:{
+    start:{msgs:[{b:"Amigo(a)… sumiu o anel da minha avó do chalé. 😢"},{b:"A gente tá numa pousada perto da cachoeira, eu e o Diego."}],choices:[{l:"Quando você viu o anel pela última vez?",to:"fatos"}]},
+    fatos:{msgs:[{b:"Às 14h, antes de ir pro spa. Voltei às 16h e tinha sumido."},{ev:"visto"},{b:"Foto do chalé:"},{photo:true}],unlock:["scene"]},
+    quem:{msgs:[{b:"O chalé tem duas chaves: a minha e a do Diego."},{b:"A camareira, Tânia, tem a chave mestra. E o Fabinho, guia, veio deixar o mapa da trilha de manhã."},{b:"Te passei o contato de todo mundo."}],unlock:["inter"]},
+    diego:{msgs:[{b:"Na trilha com o Fabinho e o grupo, das 14h30 às 17h."},{ev:"trilha"}]},
+    tania:{msgs:[{b:"De manhã, umas 10h. E o anel tava aqui às 14h, então…"}]},
+    reserva:{msgs:[{b:"Não?! O Diego não me falou de piquenique nenhum…"},{b:"“Pedido Especial”?? 😳😳😳"}]}
+  },
+  hub:[
+    {id:"quem",l:"Quem tem acesso ao chalé?",req:["fatos"]},
+    {id:"diego",l:"Onde o Diego estava à tarde?",req:["quem"]},
+    {id:"tania",l:"A Tânia limpou a que horas?",req:["e:bilhete"]},
+    {id:"reserva",l:"Você sabia desse piquenique?",req:["e:reserva"]}
+  ],
+  sus:{
+    diego:{n:"Diego",d:"namorado da Rê",
+      q:[{l:"Você saiu da trilha em algum momento?",a:["Não, fiquei o tempo todo com o grupo."]},
+         {l:"Você viu o anel hoje?",a:["Não reparei, amor… digo, detetive. 😅"]}],
+      react:{
+        voltou:["…Tá bom, voltei rapidinho. Pra pegar protetor solar!"],
+        reserva:{a:["Ok, ok. Fui eu. 🙈","A mãe da Rê me deu permissão pra pedir ela em casamento com o anel da avó.","Peguei pra levar amanhã cedo na cachoeira. Era SURPRESA!!"],gain:"contradicao"},
+        chave:["Claro que tô com a chave, o chalé é nosso."],
+        toalha:["Toalha molhada? Deve ser da Rê."]},
+      def:["Não sei de nada, juro."]},
+    tania:{n:"Tânia",d:"camareira",
+      q:[{l:"A que horas a senhora limpou o chalé?",a:["Das 10h às 10h20. Deixei bilhete."]},
+         {l:"A senhora viu o anel?",a:["Vi a caixinha fechada. Não mexo em joia de hóspede, nunca."]}],
+      react:{
+        bilhete:["Isso, meu bilhete. 10h20 eu já tava no chalé 4."],
+        visto:["14h? Eu tava almoçando com as meninas da cozinha."],
+        toalha:["Essa toalha não tava aí quando eu arrumei."]},
+      def:["Não sei, senhor(a)."]},
+    fabinho:{n:"Fabinho",d:"guia de trilha",
+      q:[{l:"O Diego ficou a trilha toda?",a:["Quase. Ele voltou pro chalé umas 15h, disse que esqueceu o protetor.","Reapareceu 15h20, meio esbaforido."],ev:"voltou"},
+         {l:"Por que você foi no chalé de manhã?",a:["Deixar o mapa da trilha. Nem entrei, deixei na porta."],ev:"mapa"}],
+      react:{
+        toalha:["Toalha de trilha? Deve ser do Diego, voltou suado."],
+        trilha:["Quase o tempo todo. Só aquela escapada das 15h."],
+        reserva:["Eita! Ele ia fazer o pedido? Que lindo! 🥹"]},
+      def:["Não sei, eu só guio a trilha."]}
+  },
+  acc:{
+    who:[["diego","Diego","namorado"],["tania","Tânia","camareira"],["fabinho","Fabinho","guia"],["re","Rê","a dona do anel"]],
+    how:[["chave","Voltou da trilha às 15h e entrou com a própria chave"],["mestra","Usou a chave mestra da camareira"],["varanda","Entrou pela varanda"],["manha","Pegou de manhã, durante a arrumação"]],
+    why:[["pedido","Ia pedir a Rê em casamento com o anel"],["vender","Vender o anel"],["divida","Pagar uma dívida"],["ciume","Ciúme da família da Rê"]],
+    answer:{who:"diego",how:"chave",why:"pedido"},
+    strong:["voltou","contradicao"], medium:["reserva","chave","toalha"],
+    hintHow:"quem saiu da trilha no meio da tarde tinha uma chave", hintWhy:"veja o que tem na mala",
+    wrong:{
+      tania:["A Tânia limpou às 10h, e eu vi o anel às 14h. Não pode ser ela."],
+      fabinho:["O Fabinho tava guiando o grupo inteiro, tem 12 testemunhas. E ele nem tem chave."],
+      re:["Eu?? Roubar o anel da MINHA avó? 😂"]},
+    wrongHint:"Quem tinha a chave e sumiu da trilha por 20 minutos?",
+    endTitle:"Caso resolvido… e noivado salvo",
+    ending:["…","Ele tá aqui do meu lado. De joelho. 😭","EU DISSE SIM!! 💍","Você estragou a surpresa, mas salvou o noivado. Obrigada, detetive! 🥹"]
+  }
+}
+];
+
+
+/* =====================================================================
+   MOTOR
+===================================================================== */
+const $=id=>document.getElementById(id);
+const el=(tag,cls,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e};
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const fmt=ms=>{const s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")};
+const stars=n=>"⭐".repeat(n)+"☆".repeat(3-n);
+
+let C=null, S=null, busy=false, speed=1, turbo=false, interWho=null, ACC={};
+let player=store.get("dp-player",null);
+const wait=ms=>new Promise(r=>setTimeout(r,ms*speed*(turbo?.25:1)));
+const tms=t=>Math.min(300+t.length*9,950);
+
+/* ---------- retratos desenhados ---------- */
+function drawFace(f,k){
+  const H=f.hair||"#222";let back="",front="";
+  switch(f.style){
+    case"curly":back=`<circle cx="50" cy="40" r="30" fill="${H}"/><circle cx="26" cy="56" r="13" fill="${H}"/><circle cx="74" cy="56" r="13" fill="${H}"/>`;front=`<path d="M26 44 Q30 22 50 22 Q70 22 74 44 Q62 30 50 32 Q38 30 26 44Z" fill="${H}"/>`;break;
+    case"long":back=`<path d="M22 50 Q20 16 50 16 Q80 16 78 50 L82 88 L18 88Z" fill="${H}"/>`;front=`<path d="M24 48 Q26 20 50 20 Q74 20 76 48 Q66 30 50 31 Q34 30 24 48Z" fill="${H}"/>`;break;
+    case"pony":back=`<path d="M70 28 Q94 40 84 74 Q78 52 70 44Z" fill="${H}"/>`;front=`<path d="M24 48 Q26 20 50 20 Q74 20 76 48 Q66 30 50 30 Q34 30 24 48Z" fill="${H}"/>`;break;
+    case"short":front=`<path d="M24 46 Q26 18 50 18 Q76 18 76 46 Q70 30 50 30 Q32 30 24 46Z" fill="${H}"/>`;break;
+    case"buzz":front=`<path d="M26 44 Q28 22 50 22 Q72 22 74 44 Q64 32 50 32 Q36 32 26 44Z" fill="${H}"/>`;break;
+    case"bun":back=`<circle cx="50" cy="16" r="11" fill="${H}"/>`;front=`<path d="M24 50 Q22 22 50 22 Q78 22 76 50 Q70 32 50 32 Q30 32 24 50Z" fill="${H}"/>`;break;
+    case"bald":front=`<path d="M27 52 Q25 42 29 38M73 52 Q75 42 71 38" stroke="${H}" stroke-width="5" fill="none" stroke-linecap="round"/>`;break;
+  }
+  const pin=f.pin?`<path d="M54 8 L66 3" stroke="#f4f4fa" stroke-width="2.4" stroke-linecap="round"/>`:"";
+  const cap=f.cap?`<path d="M25 40 Q27 16 50 16 Q73 16 75 40Z" fill="${f.cap}"/><rect x="48" y="36" width="34" height="6" rx="3" fill="${f.cap}"/>`:"";
+  const band=f.headband?`<path d="M25 36 Q50 22 75 36" stroke="${f.headband}" stroke-width="5" fill="none"/>`:"";
+  const beard=f.beard?`<path d="M32 58 Q34 82 50 84 Q66 82 68 58 Q62 70 50 70 Q38 70 32 58Z" fill="${H}" opacity=".85"/>`:"";
+  const must=f.mustache?`<path d="M40 61 Q50 55 60 61 Q50 63 40 61Z" fill="${H}"/>`:"";
+  const gl=f.glasses?`<g fill="none" stroke="#333" stroke-width="2"><circle cx="40" cy="50" r="7"/><circle cx="60" cy="50" r="7"/><path d="M47 50h6"/></g>`:"";
+  const ear=f.earrings?`<circle cx="26" cy="60" r="2.6" fill="${f.earrings}"/><circle cx="74" cy="60" r="2.6" fill="${f.earrings}"/>`:"";
+  const num=f.num?`<text x="50" y="97" text-anchor="middle" font-family="Inter" font-weight="800" font-size="13" fill="#fff" stroke="#000" stroke-opacity=".25">${f.num}</text>`:"";
+  return `<svg viewBox="0 0 100 100" role="img" aria-label="${k}"><rect width="100" height="100" fill="${f.bg}"/>${back}${pin}
+  <path d="M14 100 Q16 78 50 76 Q84 78 86 100Z" fill="${f.shirt||"#2a2f3a"}"/><rect x="43" y="64" width="14" height="13" fill="${f.skin}"/>
+  <ellipse cx="50" cy="50" rx="24" ry="27" fill="${f.skin}"/>${front}${cap}${band}
+  <circle cx="40" cy="50" r="2.6" fill="#1a1a1a"/><circle cx="60" cy="50" r="2.6" fill="#1a1a1a"/>${gl}${beard}${must}
+  <path d="M42 66 Q50 ${f.lipstick?71:70} 58 66 Q50 68 42 66Z" fill="${f.lips}" stroke="${f.lips}" stroke-width="${f.lipstick?2.4:1}"/>${ear}${num}</svg>`;
+}
+function face(k,c=C){const p=c.photos&&c.photos[k];return p?`<img src="${p}" alt="${k}">`:drawFace(c.faces[k],k)}
+
+/* ---------- cena ---------- */
+function sceneSVG(full=true){
+  const hs=!full?"":Object.entries(C.scene.hs).map(([k,h])=>`<g class="hs" data-hs="${k}" tabindex="0" role="button" aria-label="${k}">
+    <rect class="hit" x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}"/>
+    <g class="mark"><circle cx="${h.x+h.w-6}" cy="${h.y+6}" r="9" fill="#f2b84b"/><path d="M${h.x+h.w-10} ${h.y+6}l3 3 5-6" stroke="#2b1a05" stroke-width="2.2" fill="none"/></g></g>`).join("");
+  return `<svg viewBox="0 0 360 300" ${full?'id="sceneEl"':""}><defs><radialGradient id="vig${full?1:0}" cx="55%" cy="45%" r="70%"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></radialGradient></defs>
+  ${C.scene.art}<rect width="360" height="300" fill="url(#vig${full?1:0})" pointer-events="none"/>${hs}</svg>`;
+}
+const hsCount=()=>Object.keys(C.scene.hs).length;
+function bindScene(){
+  const svg=$("sceneEl");
+  svg.querySelectorAll(".hs").forEach(g=>{
+    const k=g.dataset.hs,h=C.scene.hs[k];
+    const act=()=>{
+      ring(h.x+h.w/2,h.y+h.h/2);$("sceneInfo").innerHTML=h.txt;
+      if(S.found.has(k))return;
+      S.found.add(k);g.classList.add("found");
+      if(h.ev)gain(h.ev);
+      if(h.flag){S.flags.add(h.flag);toast("Nova pergunta liberada")}
+      updateScene();save();
+    };
+    g.addEventListener("click",act);g.addEventListener("keydown",e=>{if(e.key==="Enter")act()});
+  });
+  svg.addEventListener("click",e=>{
+    if(e.target.closest(".hs"))return;
+    const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());
+    ring(q.x,q.y);$("sceneInfo").innerHTML="Nada de importante aqui. Continue procurando.";
+  });
+}
+function ring(x,y){const c=document.createElementNS("http://www.w3.org/2000/svg","circle");c.setAttribute("cx",x);c.setAttribute("cy",y);c.setAttribute("r",4);c.setAttribute("class","tap");$("sceneEl").appendChild(c);setTimeout(()=>c.remove(),700)}
+function updateScene(){const n=S.found.size,t=hsCount();$("sceneCount").textContent=`${n}/${t} detalhes encontrados`;$("sceneProg").style.width=(n/t*100)+"%"}
+
+/* ---------- estado e salvamento ---------- */
+const saveKey=()=>`dp-save-${player}-${C.id}`;
+function newState(){
+  S={visited:new Set(),ev:[],flags:new Set(),found:new Set(),asked:{},logs:{},elapsed:0,penalty:0,ended:false};
+  Object.keys(C.sus).forEach(k=>{S.asked[k]=new Set();S.logs[k]=el("div");S.logs[k].style.display="contents"});
+}
+function save(){
+  if(busy||!S||!C)return;
+  const logs={};Object.keys(S.logs).forEach(k=>logs[k]=S.logs[k].innerHTML);
+  store.set(saveKey(),{visited:[...S.visited],ev:S.ev,flags:[...S.flags],found:[...S.found],ended:S.ended,elapsed:S.elapsed,penalty:S.penalty,
+    asked:Object.fromEntries(Object.entries(S.asked).map(([k,v])=>[k,[...v]])),main:$("chat-main").innerHTML,logs,
+    scene:!$("btnScene").disabled,inter:!$("btnInter").disabled});
+}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save()});
+window.addEventListener("pagehide",save);
+
+/* ---------- cronômetro (só conta com o caso aberto e a tela visível) ---------- */
+setInterval(()=>{
+  if(!S||S.ended||!C||document.hidden||!$("home").classList.contains("off")||!$("ranking").classList.contains("off"))return;
+  S.elapsed+=1000;$("timer").textContent=fmt(S.elapsed+S.penalty);
+  if(S.elapsed%10000===0)save();
+},1000);
+
+/* ---------- abrir caso ---------- */
+function openCase(id,fresh){
+  C=CASES.find(c=>c.id===id);
+  $("mainAv").innerHTML=face(C.contact.k);$("mainName").textContent=C.contact.name;
+  const cn=C.contact.name.split(" · ")[0];document.querySelectorAll(".go-chat").forEach(b=>b.textContent=b.closest("#inter")?"💬 Voltar pra "+cn:"💬 Voltar pra conversa com "+cn);
+  $("sceneTitle").textContent=C.scene.title;
+  const d=fresh?null:store.get(saveKey(),null);
+  newState();
+  $("sceneSvg").innerHTML=sceneSVG();bindScene();
+  $("sceneInfo").innerHTML="Toque nos objetos da foto para examinar. Procure qualquer coisa fora do lugar.";
+  if(d&&d.main){
+    d.visited.forEach(v=>S.visited.add(v));S.ev=d.ev;d.flags.forEach(f=>S.flags.add(f));S.ended=d.ended;S.elapsed=d.elapsed||0;S.penalty=d.penalty||0;
+    Object.entries(d.asked).forEach(([k,v])=>v.forEach(q=>S.asked[k]&&S.asked[k].add(q)));
+    Object.entries(d.logs).forEach(([k,h])=>{if(S.logs[k])S.logs[k].innerHTML=h});
+    $("chat-main").innerHTML=d.main;$("chat-main").querySelectorAll(".photo").forEach(p=>p.onclick=()=>go("scene"));
+    d.found.forEach(k=>{S.found.add(k);const g=document.querySelector(`#sceneEl [data-hs="${k}"]`);if(g)g.classList.add("found")});
+    $("btnScene").disabled=!d.scene;$("btnInter").disabled=!d.inter;
+    updateScene();updateCount();$("timer").textContent=fmt(S.elapsed+S.penalty);
+    go("main");scroll($("chat-main"));renderHub();
+  }else{
+    store.del(saveKey());
+    $("chat-main").innerHTML=`<div class="day">${C.day}</div>`;
+    $("btnScene").disabled=true;$("btnInter").disabled=true;
+    updateScene();updateCount();$("timer").textContent="00:00";
+    go("main");play("start");
+  }
+}
+
+/* ---------- navegação ---------- */
+function go(id){["home","main","scene","contacts","inter","ranking"].forEach(s=>$(s).classList.toggle("off",s!==id&&!(id!=="home"&&id!=="ranking"&&s==="main")));}
+document.querySelectorAll("[data-back]").forEach(b=>b.onclick=()=>{
+  const to=b.dataset.back;
+  if(to==="contacts")renderContacts();
+  if(to==="home")renderHome();
+  go(to);if(to==="main")renderHub();
+});
+$("toHome").onclick=()=>{save();renderHome();go("home")};
+
+/* ---------- chat ---------- */
+function scroll(c){c.scrollTop=c.scrollHeight}
+function add(chatId,e){const c=$(chatId);(chatId==="chat-inter"?S.logs[interWho]:c).appendChild(e);scroll(c);return e}
+function bubble(chatId,cls,html){return add(chatId,el("div","msg "+cls,html))}
+function evCard(id,extra=""){const e=C.ev[id];return el("div","ev "+extra,`<div class="t">${e.t}</div><div class="c ${e.mono?"mono":""}">${e.c}</div>`)}
+async function typing(chatId,stId,ms){
+  const st=$(stId);st.textContent="digitando…";st.className="typing";
+  const d=add(chatId,el("div","dots","<i></i><i></i><i></i>"));
+  await wait(ms);d.remove();st.textContent="online";st.className="";
+}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(e._h);e._h=setTimeout(()=>e.classList.remove("show"),1900)}
+function gain(id){if(S.ev.includes(id))return;S.ev.push(id);updateCount();toast("Nova pista: "+C.ev[id].t.replace(/^\S+\s/,""))}
+function updateCount(){$("evCount").textContent=S?S.ev.length:0}
+["chat-main","chat-inter"].forEach(id=>$(id).addEventListener("click",()=>{if(busy)speed=.15}));
+const cname=()=>C.contact.name.split(" · ")[0];
+
+async function play(nodeId){
+  busy=true;$("ch-main").innerHTML='<div class="hint">toque na conversa para acelerar</div>';
+  const n=C.nodes[nodeId];S.visited.add(nodeId);
+  for(const m of n.msgs){
+    if(m.b){await typing("chat-main","st-main",tms(m.b));bubble("chat-main","in",m.b);await wait(120)}
+    if(m.ev){await typing("chat-main","st-main",450);add("chat-main",evCard(m.ev));gain(m.ev);await wait(300)}
+    if(m.photo){await typing("chat-main","st-main",700);const p=el("div","photo",sceneSVG(false)+"<span>📷 Toque para examinar</span>");p.onclick=()=>go("scene");add("chat-main",p);await wait(250)}
+  }
+  (n.unlock||[]).forEach(u=>{if(u==="scene")$("btnScene").disabled=false;if(u==="inter")$("btnInter").disabled=false});
+  speed=1;busy=false;
+  if(n.choices)renderChoices("ch-main",n.choices);else renderHub();
+}
+function renderChoices(elId,list){
+  setTimeout(save,0);
+  const box=$(elId);box.innerHTML="";
+  list.forEach(c=>{const b=el("button","choice "+(c.cls||"")+(c.main?" main":""));b.textContent=c.l;
+    b.onclick=()=>{if(busy)return;if(!c.silent)bubble(elId==="ch-main"?"chat-main":"chat-inter","me",c.l);c.fn?c.fn():play(c.to)};box.appendChild(b)});
+}
+function ok(r){if(r.startsWith("f:"))return S.flags.has(r.slice(2));if(r.startsWith("e:"))return S.ev.includes(r.slice(2));return S.visited.has(r)}
+function renderHub(){
+  if(busy||!S)return;
+  if(S.ended){renderChoices("ch-main",[{l:"🏆 Ver ranking",silent:true,fn:()=>openRanking(C.id)},{l:"↺ Jogar de novo",silent:true,fn:()=>openCase(C.id,true)},{l:"← Outros casos",silent:true,fn:()=>{renderHome();go("home")}}]);return}
+  const opts=C.hub.filter(h=>!S.visited.has(h.id)&&(h.req||[]).every(ok)).map(h=>({l:h.l,to:h.id}));
+  if(S.ev.length>=C.minEv)opts.push({l:"🕵️ Já sei quem foi.",main:true,fn:startAccusation});
+  if(!opts.length)opts.push({l:"Examine a cena ou interrogue os suspeitos 👆",silent:true,fn:()=>{}});
+  renderChoices("ch-main",opts);
+}
+$("btnScene").onclick=()=>go("scene");
+$("turbo").onclick=()=>{turbo=!turbo;$("turbo").classList.toggle("on",turbo);toast(turbo?"Mensagens rápidas: ligado":"Mensagens rápidas: desligado")};
+
+/* ---------- interrogatório ---------- */
+$("btnInter").onclick=()=>{renderContacts();go("contacts")};
+function renderContacts(){
+  const list=$("contactList");list.innerHTML="";
+  Object.entries(C.sus).forEach(([k,s])=>{
+    const left=s.q.filter(q=>!S.asked[k].has(q.l)).length;
+    const b=el("button","contact",`<div class="avatar">${face(k)}</div><div><b>${s.n}</b><small>${s.d}${left?` · ${left} pergunta(s)`:" · já respondeu tudo"}</small></div>`);
+    b.onclick=()=>openInter(k);list.appendChild(b);
+  });
+}
+function openInter(k){
+  interWho=k;const s=C.sus[k];
+  $("interAv").innerHTML=face(k);$("interName").textContent=s.n;
+  const c=$("chat-inter");c.innerHTML="";
+  if(!S.logs[k].childNodes.length)S.logs[k].innerHTML='<div class="msg note">Toque na foto do perfil pra ver melhor. Detalhes importam.</div>';
+  c.appendChild(S.logs[k]);go("inter");scroll(c);renderInter();
+}
+$("interAv").onclick=()=>{const w=el("div",null,`<div class="avatar" style="width:220px;height:220px;margin:0 auto">${face(interWho)}</div>`);const b=el("button","choice");b.textContent="Fechar foto";b.style.textAlign="center";b.onclick=closeSheet;openSheet(C.sus[interWho].n,[w,b])};
+function renderInter(){
+  const s=C.sus[interWho];
+  const opts=s.q.filter(q=>!S.asked[interWho].has(q.l)).map(q=>({l:q.l,fn:()=>answer(q)}));
+  opts.push({l:"🧷 Mostrar uma pista",cls:"alt",silent:true,fn:confront});
+  renderChoices("ch-inter",opts);
+}
+async function say(lines){for(const l of lines){await typing("chat-inter","st-inter",tms(l));bubble("chat-inter","in",l);await wait(110)}}
+async function answer(q){
+  busy=true;$("ch-inter").innerHTML="";S.asked[interWho].add(q.l);
+  await say(q.a);
+  if(q.ev){if(q.pre)await say([q.pre]);await typing("chat-inter","st-inter",450);add("chat-inter",evCard(q.ev));gain(q.ev)}
+  speed=1;busy=false;renderInter();
+}
+function confront(){
+  if(!S.ev.length){toast("Você ainda não tem pistas");return}
+  openSheet("Mostrar qual pista?",S.ev.map(id=>{const c=evCard(id,"pick");c.onclick=()=>{closeSheet();showEv(id)};return c}));
+}
+async function showEv(id){
+  busy=true;$("ch-inter").innerHTML="";
+  bubble("chat-inter","me","Explica isso aqui: "+C.ev[id].t.replace(/^\S+\s/,""));
+  const s=C.sus[interWho],r=s.react[id];
+  await say(Array.isArray(r)?r:r?r.a:s.def);
+  if(r&&r.gain){await wait(300);gain(r.gain);add("chat-inter",evCard(r.gain))}
+  speed=1;busy=false;renderInter();
+}
+
+/* ---------- painel inferior ---------- */
+function openSheet(title,els){$("sheetTitle").textContent=title;const b=$("sheetBody");b.innerHTML="";b.append(...els);$("ov").classList.add("open");$("sheet").classList.add("open")}
+function closeSheet(){$("ov").classList.remove("open");$("sheet").classList.remove("open")}
+$("closeSheet").onclick=closeSheet;$("ov").onclick=()=>{if(player)closeSheet()};
+function showEvidence(){
+  const els=S.ev.length?S.ev.map(id=>evCard(id)):[el("div","empty","Nenhuma pista ainda.")];
+  const r=el("button","restart","↺ Recomeçar este caso");r.onclick=()=>{closeSheet();openCase(C.id,true)};
+  openSheet(`Pistas (${S.ev.length}/${Object.keys(C.ev).length})`,[...els,r]);
+}
+$("openEv").onclick=showEvidence;$("openEv2").onclick=showEvidence;
+
+/* ---------- acusação em 4 etapas ---------- */
+const hint=t=>el("p","hint",t);
+function options(list,fn){return list.map(([k,l])=>{const b=el("button","choice");b.textContent=l;b.onclick=()=>fn(k,l);return b})}
+async function startAccusation(){
+  busy=true;$("ch-main").innerHTML="";
+  await typing("chat-main","st-main",500);bubble("chat-main","in","Sério?? Me explica tudo. 😳");busy=false;
+  ACC={};stepWho();
+  renderChoices("ch-main",[{l:"🕵️ Abrir acusação",main:true,silent:true,fn:startAccusation}]);
+}
+function stepWho(){
+  const grid=el("div","sus");
+  C.acc.who.forEach(([k,n,d])=>{const b=el("button",null,`<div class="avatar">${face(k)}</div>${n}<small>${d}</small>`);b.onclick=()=>{ACC.who=k;ACC.whoN=n;stepHow()};grid.appendChild(b)});
+  openSheet("Quem foi?",[hint("1 de 4 · o culpado"),grid]);
+}
+function stepHow(){openSheet("Como fez?",[hint("2 de 4 · o método"),...options(C.acc.how,(k,l)=>{ACC.how=k;ACC.howL=l;stepWhy()})])}
+function stepWhy(){openSheet("Por que fez?",[hint("3 de 4 · o motivo"),...options(C.acc.why,(k,l)=>{ACC.why=k;ACC.whyL=l;stepProof()})])}
+function stepProof(){openSheet("Qual é a prova decisiva?",[hint("4 de 4 · a prova"),...S.ev.map(id=>{const c=evCard(id,"pick");c.onclick=()=>{ACC.ev=id;closeSheet();resolve()};return c})])}
+function endCard(type,title,txt){add("chat-main",el("div","end "+type,`<b>${title}</b><p>${txt}</p>`))}
+async function contactSays(lines){for(const l of lines){await typing("chat-main","st-main",tms(l));bubble("chat-main","in",l);await wait(110)}}
+async function resolve(){
+  const A=C.acc,{who,how,why,ev}=ACC;busy=true;$("ch-main").innerHTML="";
+  bubble("chat-main","me",`Foi ${who===C.contact.k?"você":ACC.whoN}. ${ACC.howL}. Motivo: ${ACC.whyL.toLowerCase()}. A prova: ${C.ev[ev].t.replace(/^\S+\s/,"")}.`);
+  if(who!==A.answer.who){
+    S.penalty+=60000;
+    await contactSays(A.wrong[who]);
+    endCard("bad","Acusação errada · +1 min",A.wrongHint);
+    busy=false;renderChoices("ch-main",[{l:"Deixa eu rever as pistas",fn:async()=>{busy=true;await contactSays(["Tá, sem pressa."]);busy=false;renderHub()}}]);return;
+  }
+  const okHow=how===A.answer.how,okWhy=why===A.answer.why,okEv=A.strong.includes(ev);
+  const score=1+okHow+okWhy+okEv,fb=[];
+  if(!okHow)fb.push("o método não bate: "+A.hintHow);
+  if(!okWhy)fb.push("o motivo não bate: "+A.hintWhy);
+  if(!okEv)fb.push(A.medium.includes(ev)?"a prova aponta pra pessoa, mas ainda dá pra ela negar":"essa prova não liga a pessoa ao crime");
+  if(score<=2){
+    S.penalty+=60000;
+    await contactSays(["Pode até ser… mas do jeito que você contou, ninguém vai acreditar."]);
+    endCard("mid",`Suspeita certa · ${score}/4 · +1 min`,"Mas "+fb.join("; ")+".");
+    busy=false;renderChoices("ch-main",[{l:"Refazer a acusação",silent:true,fn:startAccusation},{l:"Vou investigar mais",fn:async()=>{busy=true;await contactSays(["Ok. Tô aqui."]);busy=false;renderHub()}}]);return;
+  }
+  await contactSays(A.ending);
+  const st=score===4?3:2,time=S.elapsed+S.penalty;
+  S.ended=true;
+  endCard("ok",`${A.endTitle||"Caso resolvido"} · ${score}/4 ${stars(st)}`,`Tempo: ${fmt(time)} · Pistas: ${S.ev.length}/${Object.keys(C.ev).length} · Cena: ${S.found.size}/${hsCount()}.`+(fb.length?" Quase perfeito: "+fb[0]+".":" Dedução perfeita."));
+  const best=record(C.id,st,time,score);
+  if(best)toast("Novo recorde! 🏆");
+  busy=false;renderHub();save();
+}
+
+/* =====================================================================
+   PLACAR — local (este aparelho) e online (quem abrir o link)
+===================================================================== */
+const better=(a,b)=>!b||a.stars>b.stars||(a.stars===b.stars&&a.time<b.time);
+function record(caseId,st,time,score){
+  const all=store.get("dp-scores",{});all[player]=all[player]||{};
+  const cur=all[player][caseId],nw={stars:st,time,score,at:Date.now()};
+  const isBest=better(nw,cur);
+  if(isBest){all[player][caseId]=nw;store.set("dp-scores",all);pushOnline(caseId,nw)}
+  return isBest;
+}
+let DB=null,USER=null,UID=null,ONLINE=[],NAMES={},onlineReadOnly=false;
+async function initOnline(){
+  try{
+    if(!window.claude||!claude.use)return;
+    const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+    if(!db||!user)return;
+    const id=await user.id();if(!id)return;
+    DB=db;USER=user;UID=id;
+    if(typeof user.can==="function"&&(await user.can("data.write"))===false)onlineReadOnly=true;
+    DB.collection("scores").onSnapshot(async snap=>{
+      ONLINE=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+      try{const ps=await USER.profiles(ONLINE.map(r=>r.id));ONLINE.forEach(r=>NAMES[r.id]=(ps[r.id]&&ps[r.id].name)||"")}catch(e){}
+      // envia recordes locais que ainda não estão online
+      const mine=ONLINE.find(r=>r.id===UID),local=(store.get("dp-scores",{})[player])||{};
+      Object.entries(local).forEach(([cid,v])=>{if(better(v,mine&&mine.cases&&mine.cases[cid]))pushOnline(cid,v)});
+      if(!$("ranking").classList.contains("off"))renderRanking();
+    },()=>{});
+    $("segOnline").disabled=false;
+  }catch(e){}
+}
+let pushing=Promise.resolve();
+function pushOnline(caseId,v){
+  if(!DB||onlineReadOnly)return;
+  pushing=pushing.then(async()=>{
+    try{
+      const ref=DB.doc("scores/"+UID),snap=await ref.get();
+      const cases=Object.assign({},snap.exists&&snap.data().cases||{});
+      if(!better(v,cases[caseId]))return;
+      cases[caseId]={stars:v.stars,time:v.time,score:v.score};
+      await ref.set({cases,nick:player||""});
+    }catch(e){if(e&&e.code==="invalid_argument")onlineReadOnly=true}
+  });
+}
+
+/* ---------- ranking ---------- */
+let rankMode="local",rankCase="all";
+function openRanking(cid){rankCase=cid||"all";renderRanking();go("ranking")}
+$("btnRank").onclick=()=>openRanking("all");
+$("segLocal").onclick=()=>{rankMode="local";renderRanking()};
+$("segOnline").onclick=()=>{rankMode="online";renderRanking()};
+function rows(){
+  if(rankMode==="local"){const all=store.get("dp-scores",{});return Object.entries(all).map(([n,cs])=>({name:n,me:n===player,cases:cs}))}
+  return ONLINE.map(r=>({name:NAMES[r.id]||r.nick||"Jogador",me:r.id===UID,cases:r.cases||{}}));
+}
+function renderRanking(){
+  $("segLocal").classList.toggle("sel",rankMode==="local");$("segOnline").classList.toggle("sel",rankMode==="online");
+  $("segOnline").disabled=!DB;
+  const chips=$("rankChips");chips.innerHTML="";
+  [["all","🏅 Geral"],...CASES.map(c=>[c.id,c.emoji+" "+c.title])].forEach(([k,l])=>{const b=el("button",k===rankCase?"sel":"");b.textContent=l;b.onclick=()=>{rankCase=k;renderRanking()};chips.appendChild(b)});
+  let list=rows().map(r=>{
+    if(rankCase==="all"){const v=Object.values(r.cases);return{...r,stars:v.reduce((a,x)=>a+x.stars,0),time:v.reduce((a,x)=>a+x.time,0),n:v.length}}
+    const v=r.cases[rankCase];return v?{...r,stars:v.stars,time:v.time,n:1,score:v.score}:null;
+  }).filter(r=>r&&r.n>0);
+  list.sort((a,b)=>b.stars-a.stars||a.time-b.time);
+  const box=$("rankList");box.innerHTML="";
+  if(rankMode==="online"&&!DB){box.appendChild(el("div","empty","Ranking online indisponível aqui. Abra o jogo pelo link do Claude, com login."));return}
+  if(!list.length){box.appendChild(el("div","empty",rankCase==="all"?"Ninguém resolveu um caso ainda. Seja o primeiro!":"Ninguém resolveu este caso ainda."));return}
+  list.forEach((r,i)=>{
+    const medal=["🥇","🥈","🥉"][i]||(i+1);
+    const sub=rankCase==="all"?`${r.n}/${CASES.length} casos`:`${r.score}/4 na dedução`;
+    const row=el("div","row"+(r.me?" me":""),`<div class="pos">${medal}</div><div class="nm"><b></b><small>${sub}</small></div><div class="st">⭐ ${r.stars}<small>${fmt(r.time)}</small></div>`);
+    row.querySelector("b").textContent=r.name+(r.me?" (você)":"");
+    box.appendChild(row);
+  });
+}
+
+/* ---------- início ---------- */
+function renderHome(){
+  $("playerLbl").textContent="Jogador: "+(player||"—");
+  const all=(store.get("dp-scores",{})[player])||{};
+  const list=$("caseList");list.innerHTML="";
+  CASES.forEach(c=>{
+    const best=all[c.id],sv=store.get(`dp-save-${player}-${c.id}`,null);
+    const status=best?`<span class="tag ok">${stars(best.stars)} ${fmt(best.time)}</span>`:sv&&!sv.ended?`<span class="tag go">Em andamento</span>`:`<span class="tag">Novo</span>`;
+    const b=el("button","card",`<div class="ico">${c.emoji}</div><div class="info"><b>${c.title}</b><small>${c.tagline}</small><div class="meta"><span>${"●".repeat(c.diff)}${"○".repeat(3-c.diff)} ${["","fácil","médio","difícil"][c.diff]}</span>${status}</div></div>`);
+    b.onclick=()=>{
+      if(sv&&sv.ended){openCase(c.id,true);return}
+      openCase(c.id,false);
+    };
+    list.appendChild(b);
+  });
+}
+function askPlayer(first){
+  const inp=el("input","field");inp.placeholder="Seu nome ou apelido";inp.maxLength=20;inp.value=player||"";
+  const known=Object.keys(store.get("dp-scores",{})).filter(n=>n!==player);
+  const chips=known.length?el("div","chips"):null;
+  if(chips){chips.style.padding="0";known.forEach(n=>{const b=el("button");b.textContent=n;b.onclick=()=>{inp.value=n;done()};chips.appendChild(b)})}
+  const btn=el("button","choice main");btn.textContent="Começar a investigar";btn.style.textAlign="center";
+  const done=()=>{const v=inp.value.trim();if(!v){inp.focus();return}player=v;store.set("dp-player",v);closeSheet();renderHome()};
+  btn.onclick=done;inp.onkeydown=e=>{if(e.key==="Enter")done()};
+  const els=[hint(first?"Pra entrar no ranking. Cada pessoa no mesmo celular pode ter o seu.":"Quem está jogando agora?"),inp];
+  if(chips)els.push(hint("Ou continue como:"),chips);
+  els.push(btn);
+  openSheet(first?"Quem é o detetive?":"Trocar jogador",els);
+  if(first)$("closeSheet").style.visibility="hidden";
+  setTimeout(()=>inp.focus(),300);
+  const restore=()=>{$("closeSheet").style.visibility=""};btn.addEventListener("click",restore);
+}
+$("btnPlayer").onclick=()=>askPlayer(false);
+
+renderHome();go("home");
+if(!player)askPlayer(true);
+initOnline();
+</script>
+</body>
+</html>
