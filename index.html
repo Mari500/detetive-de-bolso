@@ -583,7 +583,7 @@ const CASES=[
   tagline:"Na véspera da final de vôlei, o troféu sumiu da vitrine.",
   contact:{k:"nanda",name:"Nanda · capitã do Ipê Vôlei"}, day:"Sábado, 09:05", minEv:6,
   faces:{
-    nanda:{bg:"#f2b84b",skin:"#a8714c",hair:"#1d1410",style:"pony",lips:"#7d4434",shirt:"#f2b84b",num:"1",headband:"#fff"},
+    nanda:{bg:"#e0533f",skin:"#a8714c",hair:"#1d1410",style:"pony",lips:"#7d4434",shirt:"#f2b84b",num:"1",headband:"#fff"},
     gabi:{bg:"#4a7bd0",skin:"#efc8a8",hair:"#5a3a22",style:"long",lips:"#b66a5a",shirt:"#f2b84b",num:"7"},
     marcao:{bg:"#8a8f99",skin:"#7a4a2e",hair:"#333",style:"bald",lips:"#5e3424",mustache:true,shirt:"#3d5a80"},
     julia:{bg:"#2f9be0",skin:"#f4d2b8",hair:"#111",style:"long",lips:"#d4206b",lipstick:true,shirt:"#1b4f8a",num:"10"}
@@ -610,7 +610,7 @@ const CASES=[
     <rect x="300" y="174" width="12" height="22" rx="3" fill="#ff6fb5"/><rect x="302" y="169" width="8" height="6" rx="1" fill="#ffd1e8"/><g fill="#fff"><circle cx="304" cy="180" r=".9"/><circle cx="308" cy="186" r=".9"/><circle cx="305" cy="191" r=".9"/></g>
     <path d="M192 232 Q182 200 210 190 Q238 182 250 202 Q262 228 246 234 Z" fill="#2a5fa8"/><g stroke="#1b3f73"><path d="M200 196 L240 232M220 188 L250 220M196 214 L226 190"/></g>
     <circle cx="208" cy="194" r="9" fill="#f2d23a"/><path d="M200 192 q8 6 16 0" stroke="#2f6df6" stroke-width="2" fill="none"/>
-    <path d="M228 190 l16 -6 l4 10 l-14 6z" fill="#f4f4f4"/>${T(240,197,7,"7","#c0392b",800)}`,
+    <path d="M224 190 l22 -8 l6 14 l-20 7z" fill="#f4f4f4"/>${T(238,200,11,"7","#c0392b",800)}`,
     hs:{
       vitrine:{x:18,y:66,w:98,h:160,ev:"vitrine",txt:"<b>Vitrine:</b> aberta <b>com chave</b>, vidro intacto. O lugar do troféu está vazio."},
       chaves:{x:124,y:78,w:58,h:46,ev:"chaves",txt:"<b>Quadro de chaves:</b> a chave da vitrine (etiqueta vermelha) está pendurada no <b>gancho errado</b>."},
@@ -1057,7 +1057,7 @@ function drawFace(f,k){
   const must=f.mustache?`<path d="M40 61 Q50 55 60 61 Q50 63 40 61Z" fill="${H}"/>`:"";
   const gl=f.glasses?`<g fill="none" stroke="#333" stroke-width="2"><circle cx="40" cy="50" r="7"/><circle cx="60" cy="50" r="7"/><path d="M47 50h6"/></g>`:"";
   const ear=f.earrings?`<circle cx="26" cy="60" r="2.6" fill="${f.earrings}"/><circle cx="74" cy="60" r="2.6" fill="${f.earrings}"/>`:"";
-  const num=f.num?`<text x="50" y="97" text-anchor="middle" font-family="Inter" font-weight="800" font-size="13" fill="#fff" stroke="#000" stroke-opacity=".25">${f.num}</text>`:"";
+  const num=f.num?`<text x="${f.num.length>1?60:61}" y="93" text-anchor="middle" font-family="Inter" font-weight="800" font-size="15" fill="#fff" stroke="#000" stroke-width=".8" stroke-opacity=".5">${f.num}</text>`:"";
   return `<svg viewBox="0 0 100 100" role="img" aria-label="${k}"><rect width="100" height="100" fill="${f.bg}"/>${back}${pin}
   <path d="M14 100 Q16 78 50 76 Q84 78 86 100Z" fill="${f.shirt||"#2a2f3a"}"/><rect x="43" y="64" width="14" height="13" fill="${f.skin}"/>
   <ellipse cx="50" cy="50" rx="24" ry="27" fill="${f.skin}"/>${front}${cap}${band}
